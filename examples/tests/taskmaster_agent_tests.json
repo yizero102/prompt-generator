@@ -1,0 +1,79 @@
+{
+  "task": "TaskMaster Agent - Planning and Execution with System Tools",
+  "test_cases": [
+    {
+      "test_id": "agent_001",
+      "description": "Data analysis and reporting task",
+      "inputs": {
+        "USER_TASK": "Analyze our company's Q3 sales data and create a report showing trends, top-performing products, and recommendations for Q4 strategy.",
+        "AVAILABLE_TOOLS": "1. read_file(filepath) - Reads content from a file\n2. query_database(sql_query) - Executes SQL query on sales database\n3. analyze_data(data, analysis_type) - Performs statistical analysis\n4. create_chart(data, chart_type) - Generates visualization\n5. write_file(filepath, content) - Writes content to a file\n6. send_email(recipient, subject, body) - Sends email notification"
+      },
+      "expected_behavior": "Should create comprehensive plan, validate tools, execute steps systematically with user communication",
+      "validation_criteria": [
+        "Includes detailed <planning> section breaking down the task",
+        "Includes <tool_validation> confirming available tools",
+        "Creates structured <execution_plan> with multiple steps",
+        "Each step includes: description, tools_required, expected_outcome, dependencies",
+        "Includes <user_communication> asking for approval",
+        "Only uses tools from the provided list",
+        "Logical step ordering (e.g., query data before analyzing)",
+        "Includes <completion_report> at the end",
+        "Maintains professional agent persona as 'TaskMaster'"
+      ]
+    },
+    {
+      "test_id": "agent_002",
+      "description": "Task with missing required tools",
+      "inputs": {
+        "USER_TASK": "Send personalized birthday emails to all customers whose birthday is this month, including a 20% discount code.",
+        "AVAILABLE_TOOLS": "1. query_database(sql_query) - Executes SQL query\n2. generate_text(template, variables) - Generates text from template\n3. log_action(action_description) - Logs an action"
+      },
+      "expected_behavior": "Should identify missing email tool and communicate this to user with alternatives",
+      "validation_criteria": [
+        "Identifies that send_email or similar tool is missing",
+        "Clearly communicates missing tool in <tool_validation>",
+        "Suggests alternatives or workarounds",
+        "Still provides a plan for what CAN be done with available tools",
+        "Asks user for additional tools or guidance",
+        "Does not hallucinate tools not in the provided list",
+        "Maintains helpful, problem-solving approach"
+      ]
+    },
+    {
+      "test_id": "agent_003",
+      "description": "Multi-step workflow with dependencies",
+      "inputs": {
+        "USER_TASK": "Set up automated daily backup of our production database, verify the backup works by restoring to a test environment, then schedule it to run every night at 2 AM.",
+        "AVAILABLE_TOOLS": "1. backup_database(source_db, destination) - Creates database backup\n2. restore_database(backup_file, target_db) - Restores database from backup\n3. verify_database(db_name) - Checks database integrity\n4. create_schedule(task, time, frequency) - Schedules a task\n5. send_notification(message, channel) - Sends notification"
+      },
+      "expected_behavior": "Should plan steps with clear dependencies and validation at each stage",
+      "validation_criteria": [
+        "Identifies correct sequence: backup → restore to test → verify → schedule",
+        "Shows dependencies clearly (can't verify until restore is done)",
+        "Includes validation/verification steps",
+        "Plans for notification on completion",
+        "All required sections present",
+        "Execution plan is logical and comprehensive",
+        "Communicates each step clearly"
+      ]
+    },
+    {
+      "test_id": "agent_004",
+      "description": "Ambiguous task requiring clarification",
+      "inputs": {
+        "USER_TASK": "Make our website better.",
+        "AVAILABLE_TOOLS": "1. analyze_website(url) - Analyzes website performance\n2. check_seo(url) - Checks SEO metrics\n3. test_loading_speed(url) - Tests page load times\n4. scan_for_errors(url) - Scans for broken links and errors"
+      },
+      "expected_behavior": "Should identify ambiguity and request clarification while offering options",
+      "validation_criteria": [
+        "Identifies that task is vague/ambiguous",
+        "Requests clarification in <user_communication>",
+        "Offers multiple interpretations or approaches",
+        "Suggests using available analysis tools to identify issues",
+        "Maintains helpful, consultative approach",
+        "Does not proceed without clarification",
+        "Shows understanding of available tools' capabilities"
+      ]
+    }
+  ]
+}
