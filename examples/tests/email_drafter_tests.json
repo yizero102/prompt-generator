@@ -1,0 +1,76 @@
+{
+  "task": "Draft an email responding to a customer complaint",
+  "test_cases": [
+    {
+      "test_id": "email_001",
+      "description": "Shipping delay complaint",
+      "inputs": {
+        "CUSTOMER_COMPLAINT": "I ordered a laptop from your website 3 weeks ago and it still hasn't arrived. The tracking number doesn't work and no one responds to my emails. This is completely unacceptable! I need this for work and I'm extremely frustrated.",
+        "COMPANY_NAME": "TechGear Electronics"
+      },
+      "expected_behavior": "Should acknowledge frustration, apologize, offer investigation and solution",
+      "validation_criteria": [
+        "Demonstrates empathy and acknowledges customer frustration",
+        "Includes sincere apology",
+        "Addresses all specific issues (delay, non-working tracking, no email response)",
+        "Offers concrete solution or next steps",
+        "Maintains professional tone despite customer's anger",
+        "Includes <subject_line> and <body> sections",
+        "Provides way to follow up",
+        "Ends with reassurance"
+      ]
+    },
+    {
+      "test_id": "email_002",
+      "description": "Product quality complaint",
+      "inputs": {
+        "CUSTOMER_COMPLAINT": "I bought your 'Premium' coffee maker last month for $150, and it already broke! The heating element stopped working after just 3 weeks. For something marketed as 'premium' and 'durable,' this is ridiculous. I want a refund or replacement immediately.",
+        "COMPANY_NAME": "BrewMaster Appliances"
+      },
+      "expected_behavior": "Should apologize for product failure, validate premium product expectations, offer resolution",
+      "validation_criteria": [
+        "Acknowledges product failed to meet expectations",
+        "Validates customer's disappointment about 'premium' product",
+        "Offers specific resolution (refund/replacement)",
+        "Maintains professional, solution-oriented tone",
+        "Includes timeline for resolution",
+        "Uses proper email structure"
+      ]
+    },
+    {
+      "test_id": "email_003",
+      "description": "Service experience complaint",
+      "inputs": {
+        "CUSTOMER_COMPLAINT": "I visited your downtown location yesterday and was treated very rudely by one of your staff members. I asked a simple question about product availability and was basically ignored. When I persisted, the employee rolled their eyes and gave me a dismissive answer. I've been a loyal customer for 5 years and never experienced this before.",
+        "COMPANY_NAME": "HomeStyle Furniture"
+      },
+      "expected_behavior": "Should apologize for poor service, acknowledge loyalty, commit to addressing staff behavior",
+      "validation_criteria": [
+        "Sincerely apologizes for poor service experience",
+        "Acknowledges and thanks customer for loyalty",
+        "Takes the complaint seriously",
+        "Commits to addressing the issue (staff behavior)",
+        "Offers something to restore relationship if appropriate",
+        "Maintains empathetic, professional tone",
+        "Proper email format"
+      ]
+    },
+    {
+      "test_id": "email_004",
+      "description": "Billing error complaint",
+      "inputs": {
+        "CUSTOMER_COMPLAINT": "I was charged twice for my last order (#12345). I've tried calling your customer service line three times but keep getting disconnected after being on hold for over 30 minutes. This is $89.99 that shouldn't have been charged! Please fix this immediately.",
+        "COMPANY_NAME": "ShopSmart Online"
+      },
+      "expected_behavior": "Should prioritize resolving billing error, apologize for phone issues, provide timeline",
+      "validation_criteria": [
+        "Treats billing issue with urgency",
+        "Apologizes for both billing error and phone service issues",
+        "Provides clear next steps for refund",
+        "Includes specific timeline for resolution",
+        "References order number",
+        "Professional and reassuring tone"
+      ]
+    }
+  ]
+}

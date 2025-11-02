@@ -1,0 +1,71 @@
+{
+  "task": "Explain a complex scientific concept in simple terms",
+  "test_cases": [
+    {
+      "test_id": "concept_001",
+      "description": "Quantum entanglement explanation",
+      "inputs": {
+        "CONCEPT": "Quantum entanglement"
+      },
+      "expected_behavior": "Should explain quantum entanglement using simple language, analogies, and avoid technical jargon",
+      "validation_criteria": [
+        "Uses simple, accessible language",
+        "Includes at least one analogy or metaphor",
+        "Provides <simple_explanation> with one-sentence summary",
+        "Includes <detailed_explanation> broken into sections",
+        "Lists <key_takeaways> with 3-5 points",
+        "Addresses <common_misconceptions>",
+        "Avoids unexplained technical jargon",
+        "Remains scientifically accurate despite simplification"
+      ]
+    },
+    {
+      "test_id": "concept_002",
+      "description": "Photosynthesis explanation",
+      "inputs": {
+        "CONCEPT": "Photosynthesis"
+      },
+      "expected_behavior": "Should explain photosynthesis in terms a middle-schooler could understand",
+      "validation_criteria": [
+        "Uses everyday language and relatable examples",
+        "Explains the basic process (light + CO2 + water → glucose + oxygen)",
+        "Uses analogies (e.g., plant's food factory)",
+        "Includes all required XML sections",
+        "Makes connections to everyday life",
+        "Explains technical terms if used (chlorophyll, glucose, etc.)"
+      ]
+    },
+    {
+      "test_id": "concept_003",
+      "description": "Black holes explanation",
+      "inputs": {
+        "CONCEPT": "Black holes and event horizons"
+      },
+      "expected_behavior": "Should explain black holes and event horizons without requiring physics background",
+      "validation_criteria": [
+        "Explains what a black hole is in simple terms",
+        "Clarifies what an event horizon means",
+        "Uses analogies for gravitational effects",
+        "Addresses common sci-fi misconceptions",
+        "Structured with all required sections",
+        "Maintains accuracy while being accessible"
+      ]
+    },
+    {
+      "test_id": "concept_004",
+      "description": "DNA and genetic code explanation",
+      "inputs": {
+        "CONCEPT": "How DNA encodes genetic information"
+      },
+      "expected_behavior": "Should explain DNA structure and function using accessible comparisons",
+      "validation_criteria": [
+        "Explains DNA structure simply (double helix, base pairs)",
+        "Uses analogies (e.g., instruction manual, recipe, code)",
+        "Explains how information is stored and read",
+        "Avoids or explains technical terms (nucleotides, amino acids, etc.)",
+        "Includes concrete examples",
+        "All required sections present"
+      ]
+    }
+  ]
+}

@@ -1,19 +1,4 @@
-# prompt-generator
-
-# Table of Contents
-
-0. The Metaprompt
-1. Quickstart - Enter a task, get a prompt template
-2. Testing your prompt template
-3. Automated Prompt Generation and Testing
-
-## 0. The Metaprompt
-
-The Metaprompt is a long multi-shot prompt filled with half a dozen examples of good prompts for solving various tasks. These examples help Claude to write a good prompt for your task. The full text is below (warning: it's long!)
-
-**Metaprompt Text**
-```
-Today you will be writing instructions to an eager, helpful, but inexperienced and unworldly AI assistant who needs careful instruction and examples to understand how best to behave. I will explain a task to you. You will write instructions that will direct the assistant on how best to accomplish the task consistently, accurately, and correctly. Here are some examples of tasks and instructions.
+METAPROMPT = """Today you will be writing instructions to an eager, helpful, but inexperienced and unworldly AI assistant who needs careful instruction and examples to understand how best to behave. I will explain a task to you. You will write instructions that will direct the assistant on how best to accomplish the task consistently, accurately, and correctly. Here are some examples of tasks and instructions.
 
 <Task Instruction Example>
 <Task>
@@ -482,148 +467,31 @@ Note: Another name for what you are writing is a "prompt template". When you put
 Note: When instructing the AI to provide an output (e.g. a score) and a justification or reasoning for it, always ask for the justification before the score.
 Note: If the task is particularly complicated, you may wish to instruct the AI to think things out beforehand in scratchpad or inner monologue XML tags before it gives its final answer. For simple tasks, omit this.
 Note: If you want the AI to output its entire response or parts of its response inside certain tags, specify the name of these tags (e.g. "write your answer inside <answer> tags") but do not include closing tags or unnecessary open-and-close tag sections.
-```
+"""
 
-
-# 1. Quickstart
-Here are some examples for inspiration:
-- Choose an item from a menu for me given user preferences
-- Rate a resume according to a rubric
-- Explain a complex scientific concept in simple terms
-- Draft an email responding to a customer complaint
-- Design a marketing strategy for launching a new product
-- an agent who named 'X' can plan and execute tasks with system tools for planning and user communication, with the distinction that the tools for execution are to be provided by the user
-
-There are two examples of tasks + optional variables below.
-```
-TASK = "Draft an email responding to a customer complaint" # Replace with your task!
-# Optional: specify the input variables you want Claude to use. If you want Claude to choose, you can set `variables` to an empty list!
-VARIABLES = []
-# VARIABLES = ["CUSTOMER_COMPLAINT", "COMPANY_NAME"]
-# If you want Claude to choose the variables, just leave VARIABLES as an empty list.
-
-# TASK = "Choose an item from a menu for me given my preferences"
-# VARIABLES = []
-# VARIABLES = ["MENU", "PREFERENCES"]
-```
-
-# 2. Testing
-
-When testing your prompt templates, it's important to validate both the structure and content of the outputs. Here are key principles:
-
-## Testing Principles
-
-### 1. Define Clear Validation Criteria
-For each prompt template, define specific, measurable criteria:
-- **Structure**: Does the output use the required XML tags? Are all sections present?
-- **Content**: Does the output address the task? Are all inputs considered?
-- **Tone**: Is the tone appropriate (professional, empathetic, educational, etc.)?
-- **Accuracy**: Are facts correct? Is reasoning sound?
-- **Format**: Does the output follow the specified format?
-
-### 2. Test with Diverse Inputs
-Create test cases that cover:
-- **Normal cases**: Typical, expected inputs
-- **Edge cases**: Unusual or boundary conditions
-- **Invalid inputs**: Missing information, contradictions, ambiguous requests
-- **Complex cases**: Multiple constraints, conflicting requirements
-
-### 3. Example Test Case Structure
-
-```json
-{
-  "test_id": "unique_identifier",
-  "description": "What this test validates",
-  "inputs": {
-    "VARIABLE1": "test value 1",
-    "VARIABLE2": "test value 2"
-  },
-  "expected_behavior": "High-level description of expected output",
-  "validation_criteria": [
-    "Specific criterion 1",
-    "Specific criterion 2",
-    "Specific criterion 3"
-  ]
-}
-```
-
-### 4. Validation Examples
-
-**For a customer service prompt:**
-- ✓ Response acknowledges the customer's concern
-- ✓ Response includes an apology (when appropriate)
-- ✓ Response offers a concrete solution
-- ✓ Response maintains professional tone
-- ✓ Response is formatted as a complete email
-
-**For a data analysis prompt:**
-- ✓ Output includes <analysis> section
-- ✓ All requested metrics are calculated
-- ✓ Reasoning is provided before conclusions
-- ✓ Uses only the data provided (doesn't hallucinate)
-- ✓ Recommendations are actionable
-
-### 5. Iterative Testing and Refinement
-
-1. **Run initial tests**: Test with basic cases
-2. **Identify failure patterns**: Where does the prompt fail?
-3. **Refine the prompt**: Adjust instructions, add examples, clarify requirements
-4. **Retest**: Verify improvements
-5. **Add edge cases**: Test boundary conditions
-6. **Repeat**: Continue refining until validation criteria are consistently met
-
-### 6. Common Testing Pitfalls
-
-- **Vague criteria**: "Output is good" → Use specific criteria
-- **Single test case**: Test with multiple diverse inputs
-- **Ignoring edge cases**: Test unusual scenarios
-- **Not testing error handling**: Include invalid/ambiguous inputs
-- **Assuming structure guarantees content**: Check both format AND substance
-
-## Automated Testing Tools
-
-For automated testing of your prompt templates, see the [QUICKSTART_AUTOMATION.md](QUICKSTART_AUTOMATION.md) guide, which includes:
-- Test case structures and examples
-- Validation framework
-- Integration with LLM APIs
-- Complete test suites for all quickstart examples
-
-# 3. Automated Prompt Generation and Testing
-
-This repository now includes an automated system for generating and testing prompt templates. See [QUICKSTART_AUTOMATION.md](QUICKSTART_AUTOMATION.md) for complete documentation.
-
-## Quick Start
-
-### Generate a Prompt Template
-```bash
-python scripts/generate_prompt.py "Your task description" --variables VAR1 VAR2
-```
-
-### Test a Prompt
-```bash
-python scripts/test_prompt.py examples/tests/menu_chooser_tests.json --report
-```
-
-### Run All Examples
-```bash
-python scripts/run_all_examples.py
-```
-
-## Available Examples
-
-The project includes complete prompt templates and test suites for:
-
-1. **Menu Chooser** - Select menu items based on dietary preferences
-2. **Resume Rater** - Evaluate resumes against scoring rubrics
-3. **Concept Explainer** - Explain complex scientific concepts simply
-4. **Email Drafter** - Respond professionally to customer complaints
-5. **Marketing Strategist** - Design product launch marketing strategies
-6. **TaskMaster Agent** - Planning and execution agent with tools
-
-Each example includes:
-- Complete prompt template with variables
-- Multiple test cases covering normal and edge cases
-- Validation criteria for systematic testing
-- Usage examples with sample inputs/outputs
-
-See the `examples/` directory for all templates and test cases.
+QUICKSTART_EXAMPLES = [
+    {
+        "task": "Choose an item from a menu for me given user preferences",
+        "variables": ["MENU", "PREFERENCES"]
+    },
+    {
+        "task": "Rate a resume according to a rubric",
+        "variables": ["RESUME", "RUBRIC"]
+    },
+    {
+        "task": "Explain a complex scientific concept in simple terms",
+        "variables": ["CONCEPT"]
+    },
+    {
+        "task": "Draft an email responding to a customer complaint",
+        "variables": ["CUSTOMER_COMPLAINT", "COMPANY_NAME"]
+    },
+    {
+        "task": "Design a marketing strategy for launching a new product",
+        "variables": ["PRODUCT_DESCRIPTION", "TARGET_AUDIENCE", "BUDGET"]
+    },
+    {
+        "task": "An agent named 'TaskMaster' can plan and execute tasks with system tools for planning and user communication, with the distinction that the tools for execution are to be provided by the user",
+        "variables": ["USER_TASK", "AVAILABLE_TOOLS"]
+    }
+]

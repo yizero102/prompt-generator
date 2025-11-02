@@ -1,0 +1,66 @@
+{
+  "task": "Design a marketing strategy for launching a new product",
+  "test_cases": [
+    {
+      "test_id": "marketing_001",
+      "description": "Tech product for young professionals",
+      "inputs": {
+        "PRODUCT_DESCRIPTION": "EcoBottle - A smart water bottle that tracks hydration, reminds users to drink water via smartphone app notifications, syncs with fitness apps, and is made from 100% recycled materials. Features LED indicators and 24-hour battery life. Retail price: $45.",
+        "TARGET_AUDIENCE": "Health-conscious millennials and Gen Z (ages 22-35), urban professionals interested in fitness, wellness, and sustainability. Tech-savvy early adopters.",
+        "BUDGET": "$50,000 for 3-month launch campaign"
+      },
+      "expected_behavior": "Should create comprehensive strategy with digital focus, influencer marketing, and sustainability messaging",
+      "validation_criteria": [
+        "Includes <strategy_overview> section",
+        "Includes <market_positioning> with unique value proposition",
+        "Recommends at least 4-5 marketing channels",
+        "Each channel has rationale, tactics, budget allocation, and expected outcomes",
+        "Budget allocations sum to approximately $50,000",
+        "Channels appropriate for target audience (e.g., Instagram, TikTok, not traditional TV)",
+        "Includes <launch_timeline> with pre-launch, launch, and post-launch phases",
+        "Defines 5-7 measurable KPIs in <success_metrics>",
+        "Includes <risk_mitigation> section",
+        "Strategy emphasizes both tech features and sustainability"
+      ]
+    },
+    {
+      "test_id": "marketing_002",
+      "description": "Local service business",
+      "inputs": {
+        "PRODUCT_DESCRIPTION": "GreenClean - A new eco-friendly house cleaning service using only non-toxic, plant-based cleaning products. Offers one-time deep cleans and recurring service subscriptions. Service area: Metro City and suburbs.",
+        "TARGET_AUDIENCE": "Families with young children and pets, environmentally conscious homeowners aged 30-55, middle to upper-middle income, value convenience and health.",
+        "BUDGET": "$15,000 for launch campaign (first 2 months)"
+      },
+      "expected_behavior": "Should focus on local marketing tactics, community engagement, and building trust",
+      "validation_criteria": [
+        "Recommends local-focused channels (local SEO, community partnerships, local ads)",
+        "Budget appropriate for local service ($15,000)",
+        "Emphasizes trust-building tactics (reviews, referrals, guarantees)",
+        "Targets local neighborhoods and communities",
+        "Includes timeline suitable for service business",
+        "KPIs relevant to service business (bookings, customer acquisition cost, etc.)",
+        "All required sections present"
+      ]
+    },
+    {
+      "test_id": "marketing_003",
+      "description": "B2B software product",
+      "inputs": {
+        "PRODUCT_DESCRIPTION": "TaskFlow Pro - A project management and team collaboration platform designed for remote teams. Features: video integration, automated workflows, time tracking, and advanced reporting. Pricing: $15/user/month with 14-day free trial.",
+        "TARGET_AUDIENCE": "Small to medium-sized businesses (10-100 employees), particularly remote-first companies. Decision makers: CTOs, Operations Managers, Team Leads in tech, marketing, and creative industries.",
+        "BUDGET": "$80,000 for 6-month launch campaign"
+      },
+      "expected_behavior": "Should emphasize B2B channels like LinkedIn, content marketing, webinars, and demo-focused approach",
+      "validation_criteria": [
+        "Recommends B2B-appropriate channels (LinkedIn, content marketing, webinars, not TikTok)",
+        "Strategy focuses on lead generation and demo conversions",
+        "Targets decision-makers appropriately",
+        "Budget allocation suitable for B2B SaaS ($80,000 over 6 months)",
+        "KPIs include B2B metrics (MQLs, SQLs, demo requests, trial signups)",
+        "Timeline accounts for longer B2B sales cycles",
+        "All required sections present",
+        "Emphasizes thought leadership and education"
+      ]
+    }
+  ]
+}

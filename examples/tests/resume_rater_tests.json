@@ -1,0 +1,54 @@
+{
+  "task": "Rate a resume according to a rubric",
+  "test_cases": [
+    {
+      "test_id": "resume_001",
+      "description": "Mid-level software engineer evaluation",
+      "inputs": {
+        "RESUME": "Jane Smith\\nSoftware Engineer\\n\\nEXPERIENCE:\\nSenior Software Engineer, TechCorp (2020-2023)\\n- Led team of 5 developers on cloud migration project\\n- Implemented CI/CD pipeline, reducing deployment time by 60%\\n- Mentored 3 junior developers\\n\\nSoftware Engineer, StartupXYZ (2018-2020)\\n- Developed REST APIs using Python and Django\\n- Collaborated with product team on feature development\\n\\nEDUCATION:\\nB.S. Computer Science, State University (2018)\\nGPA: 3.7/4.0\\n\\nSKILLS:\\nPython, JavaScript, React, AWS, Docker, Kubernetes, SQL",
+        "RUBRIC": "CRITERIA:\\n1. Experience (0-10 points):\\n   - 0-2 years: 0-3 points\\n   - 2-4 years: 4-6 points\\n   - 4-7 years: 7-9 points\\n   - 7+ years: 10 points\\n\\n2. Education (0-5 points):\\n   - No degree: 0 points\\n   - Some college: 1-2 points\\n   - Bachelor's in relevant field: 3-4 points\\n   - Master's or higher: 5 points\\n\\n3. Leadership (0-5 points):\\n   - No evidence: 0 points\\n   - Some collaboration: 1-2 points\\n   - Led small projects/mentored: 3-4 points\\n   - Led large teams/initiatives: 5 points\\n\\n4. Technical Skills (0-10 points):\\n   - Limited: 0-3 points\\n   - Moderate breadth: 4-6 points\\n   - Strong breadth and depth: 7-9 points\\n   - Expert level, cutting-edge: 10 points\\n\\nTotal: 30 points possible"
+      },
+      "expected_behavior": "Should evaluate each criterion with evidence, provide justification before scores, and calculate total accurately",
+      "validation_criteria": [
+        "Evaluates all four criteria from the rubric",
+        "Provides evidence from resume for each criterion",
+        "Includes justification BEFORE score for each criterion",
+        "Scores are within the ranges specified in rubric",
+        "Calculates correct overall score (sum of all criteria)",
+        "Uses specified XML structure (<criterion>, <evidence>, <justification>, <score>)",
+        "Provides summary with strengths and improvements"
+      ]
+    },
+    {
+      "test_id": "resume_002",
+      "description": "Entry-level candidate evaluation",
+      "inputs": {
+        "RESUME": "Alex Johnson\\nRecent Graduate\\n\\nEDUCATION:\\nB.A. English Literature, City College (2023)\\nGPA: 3.5/4.0\\n\\nINTERNSHIP:\\nMarketing Intern, Local Business (Summer 2022)\\n- Assisted with social media posts\\n- Helped organize community event\\n\\nSKILLS:\\nMicrosoft Office, Basic HTML, Social Media",
+        "RUBRIC": "CRITERIA:\\n1. Relevant Experience (0-10 points)\\n2. Education (0-5 points)\\n3. Skills Match (0-5 points)\\nTotal: 20 points\\n\\nPosition: Entry-Level Marketing Coordinator"
+      },
+      "expected_behavior": "Should fairly evaluate entry-level candidate, noting limited experience but relevant education",
+      "validation_criteria": [
+        "Acknowledges entry-level status appropriately",
+        "Evaluates relevant experience fairly (internship)",
+        "Provides constructive feedback",
+        "Scores reflect entry-level expectations",
+        "Includes both strengths and development areas"
+      ]
+    },
+    {
+      "test_id": "resume_003",
+      "description": "Overqualified candidate evaluation",
+      "inputs": {
+        "RESUME": "Dr. Robert Chen\\nPhD Computer Science, MIT (2015)\\n15 years experience in AI/ML\\nPublished 25+ research papers\\nFormer CTO of AI startup\\nPatent holder (3 patents)\\nExpert in: Python, TensorFlow, PyTorch, NLP, Computer Vision",
+        "RUBRIC": "Junior Developer Position\\n1. Experience (0-5 points): 0-2 years preferred\\n2. Education (0-3 points): Bachelor's required\\n3. Basic programming skills (0-2 points)\\nTotal: 10 points"
+      },
+      "expected_behavior": "Should recognize overqualification while still evaluating against rubric fairly",
+      "validation_criteria": [
+        "Evaluates against provided rubric",
+        "Notes overqualification explicitly",
+        "Provides accurate scores based on rubric criteria",
+        "Mentions potential fit concerns in summary"
+      ]
+    }
+  ]
+}
