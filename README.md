@@ -491,7 +491,7 @@ Here are some examples for inspiration:
 - Explain a complex scientific concept in simple terms
 - Draft an email responding to a customer complaint
 - Design a marketing strategy for launching a new product
-- Design an agent that can plan and execute tasks, and design the system tools it will use for planning and user communication, with the distinction that the tools for execution are to be provided by the user.
+- an agent who named 'X' can plan and execute tasks with system tools for planning and user communication, with the distinction that the tools for execution are to be provided by the user
 
 There are two examples of tasks + optional variables below.
 ```
