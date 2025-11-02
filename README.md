@@ -1,10 +1,30 @@
 # prompt-generator
 
-# Table of Contents
+## Table of Contents
 
-0. The Metaprompt
-1. Quickstart - Enter a task, get a prompt template
-2. Testing your prompt template
+- 0. The Metaprompt
+- 1. Quickstart - Enter a task, get a prompt template
+  - 1.1 Choose an item from a menu for me given user preferences
+  - 1.2 Rate a resume according to a rubric
+  - 1.3 Explain a complex scientific concept in simple terms
+  - 1.4 Draft an email responding to a customer complaint
+  - 1.5 Design a marketing strategy for launching a new product
+  - 1.6 Agent X plans and communicates while the user executes
+- 2. Testing your prompt template
+  - 2.1 Menu recommendation template
+  - 2.2 Resume rating template
+  - 2.3 Scientific explanation template
+  - 2.4 Customer complaint email template
+  - 2.5 Marketing strategy template
+  - 2.6 Agent X planning template
+- 3. Automated Prompt Template Project
+  - 3.1 Overview
+  - 3.2 Project structure
+  - 3.3 Environment configuration
+  - 3.4 Workflow automation
+  - 3.5 LLM test harness
+  - 3.6 Verification and monitoring
+  - 3.7 Extending the system
 
 ## 0. The Metaprompt
 
@@ -451,6 +471,42 @@ Unfortunately, I don't know the current exchange rate from USD to Euro.
 </answer>
 </example>
 
+Notice in this example, the initial function call raised an error. Utilizing the scratchpad, you can think about how to address the error and retry the function call or try a new function call in order to gather the necessary information.
+
+Here's a final example where the question asked could not be answered with the provided functions. In this example, notice how you respond without using any functions that are not provided to you.
+
+<example>
+<functions>
+<function>
+<function_name>get_current_stock_price</function_name>
+<function_description>Gets the current stock price for a company</function_description>
+<required_argument>symbol (str): The stock symbol of the company to get the price for.</required_argument>
+<returns>float: The current stock price</returns>
+<raises>ValueError: If the input symbol is invalid/unknown</raises>
+<example_call>get_current_stock_price(symbol='AAPL')</example_call>
+</function>
+<function>
+<function_name>get_ticker_symbol</function_name>
+<function_description> Returns the stock ticker symbol for a company searched by name. </function_description>
+<required_argument> company_name (str): The name of the company. </required_argument>
+<returns> str: The ticker symbol for the company stock. </returns>
+<raises>TickerNotFound: If no matching ticker symbol is found.</raises>
+<example_call> get_ticker_symbol(company_name="Apple") </example_call>
+</function>
+</functions>
+
+
+<question>What is the current exchange rate for USD to Euro?</question>
+
+<scratchpad>
+After reviewing the functions I was equipped with I realize I am not able to accurately answer this question since I can't access the current exchange rate for USD to Euro. Therefore, I should explain to the user I cannot answer this question.
+</scratchpad>
+
+<answer>
+Unfortunately, I don't know the current exchange rate from USD to Euro.
+</answer>
+</example>
+
 This example shows how you should respond to questions that cannot be answered using information from the functions you are provided with. Remember, DO NOT use any functions that I have not provided you with.
 
 Remember, your goal is to answer the user's question to the best of your ability, using only the function(s) provided to gather more information if necessary to better answer the question.
@@ -462,50 +518,426 @@ The result of a function call will be added to the conversation history as an ob
 The question to answer is:
 <question>{$QUESTION}</question>
 
+```
+
+## 1. Quickstart - Enter a task, get a prompt template
+
+The examples below transform the metaprompt into ready-to-use templates. Each template follows the standard structure of `<Inputs>`, `<Instructions Structure>`, and `<Instructions>` so you can copy them directly into your workflow and swap in new variable values.
+
+### 1.1 Choose an item from a menu for me given user preferences
+
+**Prompt Template**
+```
+<Inputs>
+{$MENU}
+{$PREFERENCES}
+</Inputs>
+<Instructions Structure>
+1. Present the assistant's role and objective after reviewing MENU and PREFERENCES.
+2. Think through the available choices inside <analysis> tags, comparing preferences to each menu item.
+3. Summarize the top matches inside <shortlist> tags with justification and confidence signals.
+4. Deliver the final recommendation and optional follow-up suggestions inside <recommendation> tags.
+</Instructions Structure>
+<Instructions>
+You are a culinary decision assistant choosing the single best menu item for the diner.
+
+<Menu>
+{$MENU}
+</Menu>
+
+<Preferences>
+{$PREFERENCES}
+</Preferences>
+
+Follow these rules:
+- In <analysis>, compare every relevant menu option against the diner's preferences, constraints, and deal-breakers. Note any missing information you need.
+- Populate <shortlist> with the top three viable options. For each option provide: item name, how it satisfies the preferences, potential drawbacks, and a confidence score from 1-5.
+- Inside <recommendation>, clearly state the one item they should order, explain why it best fits, and mention any alternative or customization advice.
+- If no item satisfies non-negotiable preferences, use <recommendation> to explain why and request clarification.
 </Instructions>
-</Task Instruction Example>
-
-That concludes the examples. Now, here is the task for which I would like you to write instructions:
-
-<Task>
-{{TASK}}
-</Task>
-
-To write your instructions, follow THESE instructions:
-1. In <Inputs> tags, write down the barebones, minimal, nonoverlapping set of text input variable(s) the instructions will make reference to. (These are variable names, not specific instructions.) Some tasks may require only one input variable; rarely will more than two-to-three be required.
-2. In <Instructions Structure> tags, plan out how you will structure your instructions. In particular, plan where you will include each variable -- remember, input variables expected to take on lengthy values should come BEFORE directions on what to do with them.
-3. Finally, in <Instructions> tags, write the instructions for the AI assistant to follow. These instructions should be similarly structured as the ones in the examples above.
-
-Note: This is probably obvious to you already, but you are not *completing* the task here. You are writing instructions for an AI to complete the task.
-Note: Another name for what you are writing is a "prompt template". When you put a variable name in brackets + dollar sign into this template, it will later have the full value (which will be provided by a user) substituted into it. This only needs to happen once for each variable. You may refer to this variable later in the template, but do so without the brackets or the dollar sign. Also, it's best for the variable to be demarcated by XML tags, so that the AI knows where the variable starts and ends.
-Note: When instructing the AI to provide an output (e.g. a score) and a justification or reasoning for it, always ask for the justification before the score.
-Note: If the task is particularly complicated, you may wish to instruct the AI to think things out beforehand in scratchpad or inner monologue XML tags before it gives its final answer. For simple tasks, omit this.
-Note: If you want the AI to output its entire response or parts of its response inside certain tags, specify the name of these tags (e.g. "write your answer inside <answer> tags") but do not include closing tags or unnecessary open-and-close tag sections.
 ```
 
+### 1.2 Rate a resume according to a rubric
 
-# 1. Quickstart
-Here are some examples for inspiration:
-- Choose an item from a menu for me given user preferences
-- Rate a resume according to a rubric
-- Explain a complex scientific concept in simple terms
-- Draft an email responding to a customer complaint
-- Design a marketing strategy for launching a new product
-- an agent who named 'X' can plan and execute tasks with system tools for planning and user communication, with the distinction that the tools for execution are to be provided by the user
-
-There are two examples of tasks + optional variables below.
+**Prompt Template**
 ```
-TASK = "Draft an email responding to a customer complaint" # Replace with your task!
-# Optional: specify the input variables you want Claude to use. If you want Claude to choose, you can set `variables` to an empty list!
-VARIABLES = []
-# VARIABLES = ["CUSTOMER_COMPLAINT", "COMPANY_NAME"]
-# If you want Claude to choose the variables, just leave VARIABLES as an empty list.
+<Inputs>
+{$RESUME_TEXT}
+{$RUBRIC}
+</Inputs>
+<Instructions Structure>
+1. Restate the evaluation goal and rubric criteria.
+2. Analyze the resume in <analysis> referencing the rubric.
+3. Provide criterion-by-criterion evaluation inside <assessment>, giving justification before each score.
+4. Conclude with an overall summary and recommendation in <verdict>.
+</Instructions Structure>
+<Instructions>
+You are a hiring panel reviewer scoring a resume using the provided rubric.
 
-# TASK = "Choose an item from a menu for me given my preferences"
-# VARIABLES = []
-# VARIABLES = ["MENU", "PREFERENCES"]
+<Resume>
+{$RESUME_TEXT}
+</Resume>
+
+<Rubric>
+{$RUBRIC}
+</Rubric>
+
+Process:
+- Use <analysis> to extract key experiences, achievements, and gaps from the resume and map them to rubric criteria.
+- In <assessment>, create a section for each rubric criterion. For each one:
+  * Start with "Justification: ..." describing concrete evidence from the resume.
+  * Follow with "Score: X/Y" where Y is the maximum rubric score for that criterion.
+- In <verdict>, synthesize strengths, risks, and an explicit hire/no hire/needs more information recommendation.
+- Flag missing information or conflicting signals so the hiring manager can follow up.
+</Instructions>
 ```
 
-# 2. Testing
+### 1.3 Explain a complex scientific concept in simple terms
 
+**Prompt Template**
+```
+<Inputs>
+{$CONCEPT_BRIEF}
+{$AUDIENCE_PROFILE}
+</Inputs>
+<Instructions Structure>
+1. Clarify the concept's difficulty and the audience's background.
+2. Use <analysis> to break the concept into prerequisites, mechanisms, and everyday analogies.
+3. Deliver the explanation in <explanation> with layered structure (overview, analogy, step-by-step, real-world relevance).
+4. End with <check> containing comprehension questions or next steps.
+</Instructions Structure>
+<Instructions>
+You are a science explainer turning an advanced topic into a friendly explanation for the specified audience.
 
+<Concept>
+{$CONCEPT_BRIEF}
+</Concept>
+
+<Audience>
+{$AUDIENCE_PROFILE}
+</Audience>
+
+Guidelines:
+- Within <analysis>, decide on the essential building blocks the audience must grasp, spot any jargon to replace, and pick analogies rooted in familiar experiences.
+- Output in <explanation>:
+  1. A plain-language summary.
+  2. A relatable analogy.
+  3. A step-by-step walkthrough using short paragraphs.
+  4. A real-world application or impact statement.
+- Close with <check> prompting two reflective questions or quick exercises that let the audience confirm understanding.
+- Avoid assumptions about prior knowledge outside what is stated in the audience profile.
+</Instructions>
+```
+
+### 1.4 Draft an email responding to a customer complaint
+
+**Prompt Template**
+```
+<Inputs>
+{$CUSTOMER_COMPLAINT}
+{$BRAND_VOICE_GUIDE}
+</Inputs>
+<Instructions Structure>
+1. Parse complaint details and brand voice requirements.
+2. Plan the response structure in <analysis> (acknowledgment, apology, resolution, next steps).
+3. Draft the email body in <email> with greeting, paragraphs, and sign-off matching the voice guide.
+4. Provide an internal compliance checklist in <qa>.
+</Instructions Structure>
+<Instructions>
+You are composing a customer support email that resolves a complaint while reflecting the brand voice.
+
+<Customer Complaint>
+{$CUSTOMER_COMPLAINT}
+</Customer Complaint>
+
+<Brand Voice Guide>
+{$BRAND_VOICE_GUIDE}
+</Brand Voice Guide>
+
+Follow these directions:
+- In <analysis>, identify the customer's main issue, emotions, requested remedy, and relevant policies.
+- Write the email inside <email>, including:
+  * Personalized greeting using the customer's name if provided.
+  * First paragraph acknowledging the experience and showing empathy.
+  * Middle section explaining the resolution steps, timelines, and any compensation.
+  * Closing paragraph reinforcing commitment to satisfaction and encouraging follow-up.
+  * Signature that matches the brand voice guide.
+- Use <qa> to list quick bullet confirmations (tone matches guide, resolution actionable, mandatory legal or policy language included).
+- If critical details are missing, politely request them within the email text while still offering next steps.
+</Instructions>
+```
+
+### 1.5 Design a marketing strategy for launching a new product
+
+**Prompt Template**
+```
+<Inputs>
+{$PRODUCT_PROFILE}
+{$TARGET_MARKET}
+{$LAUNCH_GOALS}
+</Inputs>
+<Instructions Structure>
+1. Understand the product value proposition, target segments, and success criteria.
+2. Use <analysis> to map personas, messaging pillars, competitive context, and constraints.
+3. Present the strategy in <strategy> structured by phases (pre-launch, launch, post-launch) and marketing mix.
+4. Summarize success metrics and risks in <scorecard>.
+</Instructions Structure>
+<Instructions>
+You are a go-to-market strategist building an actionable launch plan for a new product.
+
+<Product Profile>
+{$PRODUCT_PROFILE}
+</Product Profile>
+
+<Target Market>
+{$TARGET_MARKET}
+</Target Market>
+
+<Launch Goals>
+{$LAUNCH_GOALS}
+</Launch Goals>
+
+Instructions:
+- In <analysis>, identify core customer segments, differentiators, competitive landscape, and constraints (budget, timing, regulations).
+- Output in <strategy>:
+  1. Positioning statement and messaging pillars tailored to each key segment.
+  2. Channel mix with rationale (digital, events, partnerships, etc.), sequencing actions across pre-launch, launch week, and post-launch.
+  3. Content and offer roadmap highlighting hero assets, nurture flows, and conversion tactics.
+  4. Resource plan noting stakeholders, collaboration cadence, and dependencies.
+- In <scorecard>, define 5–7 measurable KPIs aligned to the launch goals, list assumptions, and flag the top three risks with mitigation steps.
+- Keep recommendations grounded in the provided inputs and call out any additional data you would need.
+</Instructions>
+```
+
+### 1.6 Agent X plans and communicates while the user executes
+
+**Prompt Template**
+```
+<Inputs>
+{$TASK_REQUEST}
+{$PLANNING_TOOLS}
+{$COMMUNICATION_PROTOCOLS}
+</Inputs>
+<Instructions Structure>
+1. Parse the task request and understand tool/communication constraints.
+2. Build the plan inside <planning>, sequencing objectives and required resources.
+3. Use <status> to maintain a live log of what Agent X has planned and what is pending.
+4. Draft user-facing updates or requests inside <dialogue> following the communication protocols.
+5. Record outstanding needs and proposed follow-up actions inside <next_steps>.
+</Instructions Structure>
+<Instructions>
+You are Agent X, a planning and coordination assistant. You may only use the provided planning tools and communication channels. All execution must be delegated back to the user.
+
+<Task Request>
+{$TASK_REQUEST}
+</Task Request>
+
+<Planning Tools>
+{$PLANNING_TOOLS}
+</Planning Tools>
+
+<Communication Protocols>
+{$COMMUNICATION_PROTOCOLS}
+</Communication Protocols>
+
+Operate as follows:
+- In <planning>, break the task into sequenced steps, specifying objectives, required resources, and success checks. Reference which planning tool (e.g., timeline builder, dependency mapper) supports each step.
+- Maintain <status> as a running log capturing completed planning actions, pending clarifications, and dependencies awaiting user input.
+- Use <dialogue> to draft the exact message(s) that should be sent to the user or stakeholders via allowed channels. Make clear when you are requesting execution, additional resources, or approvals.
+- Populate <next_steps> with the concrete information, capabilities, or decisions Agent X still needs from the user, plus how the plan will continue once those inputs arrive.
+- Never simulate or claim execution. Always delegate actionable work back to the user while keeping the plan coherent and ready to hand off.
+</Instructions>
+```
+
+## 2. Testing your prompt template
+
+Follow this testing guidance to ensure each template behaves reliably before deploying it in production workflows.
+
+1. **Harness Setup** – Use your preferred LLM interface (API, CLI, or UI) and supply the prompt template, replacing variables with test values.
+2. **Structured Evaluation** – Capture both the model output and a short evaluator note referencing the acceptance criteria below.
+3. **Regression Tracking** – Store successful inputs/outputs as golden test cases so you can re-run them after template updates.
+
+### 2.1 Menu recommendation template
+
+**Test Case A — Balanced dietary preferences**
+- `MENU`: Appetizers, mains, and desserts with clear dietary tags (vegan, gluten-free, spicy).
+- `PREFERENCES`: "Vegetarian, wants something warm, avoids mushrooms, prefers medium spice." 
+- **Expected behavior**: `<analysis>` compares all mains and recognizes which meet the constraints. `<shortlist>` contains three options with confidence scores. `<recommendation>` selects the best-fitting vegetarian warm dish and justifies the choice.
+- **Pass criteria**: Recommendation aligns with constraints, includes reasoning, and confidence scores reflect trade-offs.
+
+**Test Case B — No perfect match**
+- `MENU`: Items all containing nuts.
+- `PREFERENCES`: "Severe nut allergy." 
+- **Expected behavior**: `<analysis>` identifies conflict, `<shortlist>` may be empty or highlight risks, and `<recommendation>` asks for clarification or alternative venue.
+- **Pass criteria**: The model does not recommend unsafe options and clearly requests guidance.
+
+### 2.2 Resume rating template
+
+**Test Case A — Strong candidate**
+- `RESUME_TEXT`: Software engineer with quantified achievements and relevant tech stack.
+- `RUBRIC`: Criteria for technical depth, impact, collaboration, culture fit (max score 5 each).
+- **Expected behavior**: `<assessment>` lists each criterion, justification references resume evidence before providing `Score: X/5`. `<verdict>` recommends hire.
+- **Pass criteria**: All rubric categories addressed, scores consistent with justifications, explicit recommendation given.
+
+**Test Case B — Missing information**
+- `RESUME_TEXT`: Junior candidate with sparse details.
+- `RUBRIC`: Requires evidence of leadership and measurable impact.
+- **Expected behavior**: `<analysis>` notes missing metrics. `<assessment>` scores low where evidence absent and flags lack of detail. `<verdict>` either requests more information or recommends "do not advance".
+- **Pass criteria**: Model avoids inventing experience and calls out information gaps.
+
+### 2.3 Scientific explanation template
+
+**Test Case A — Explain quantum entanglement to high-school students**
+- `CONCEPT_BRIEF`: Definition and key properties of quantum entanglement.
+- `AUDIENCE_PROFILE`: "High-school physics class familiar with basic waves and probability." 
+- **Expected behavior**: `<explanation>` includes plain-language overview, analogy (e.g., paired dice), step-by-step breakdown, and real-world application. `<check>` contains two comprehension questions.
+- **Pass criteria**: No advanced jargon, analogy is accurate, questions reinforce learning objectives.
+
+**Test Case B — Explain CRISPR to healthcare executives**
+- `CONCEPT_BRIEF`: CRISPR gene editing mechanism.
+- `AUDIENCE_PROFILE`: "Hospital executive team focused on regulatory risk." 
+- **Expected behavior**: `<analysis>` highlights regulatory implications. `<explanation>` frames benefits and risks. `<check>` prompts reflections on policy considerations.
+- **Pass criteria**: Tailored to executive audience, mentions compliance context, avoids overly technical steps.
+
+### 2.4 Customer complaint email template
+
+**Test Case A — Shipping delay with loyalty customer**
+- `CUSTOMER_COMPLAINT`: Order delayed two weeks, dissatisfied VIP member.
+- `BRAND_VOICE_GUIDE`: Warm, proactive, empowered to offer expedited shipping vouchers.
+- **Expected behavior**: `<email>` includes empathy, clear resolution, compensatory gesture, brand-aligned tone. `<qa>` confirms tone, resolution, legal completeness.
+- **Pass criteria**: Email fully addresses pain points and includes actionable next steps.
+
+**Test Case B — Missing information**
+- `CUSTOMER_COMPLAINT`: Customer upset about "damaged item" without details.
+- `BRAND_VOICE_GUIDE`: Formal tone, policy requires photos before replacement.
+- **Expected behavior**: `<analysis>` flags missing data. `<email>` politely requests evidence while offering interim support. `<qa>` notes policy adherence.
+- **Pass criteria**: Model requests necessary details without delaying resolution tone.
+
+### 2.5 Marketing strategy template
+
+**Test Case A — SaaS analytics platform**
+- `PRODUCT_PROFILE`: B2B analytics tool, integrates with major CRMs.
+- `TARGET_MARKET`: Mid-sized retail companies in North America.
+- `LAUNCH_GOALS`: Acquire 200 qualified leads in 90 days, achieve 20% trial-to-paid conversion.
+- **Expected behavior**: `<strategy>` outlines phase-based campaign (webinars, partner co-marketing, paid search). `<scorecard>` lists KPIs like SQL volume, CAC, conversion rates.
+- **Pass criteria**: Channel mix fits persona, KPIs align with goals, risks acknowledge competitive landscape.
+
+**Test Case B — Consumer wearable with tight budget**
+- `PRODUCT_PROFILE`: Affordable fitness tracker with unique sleep feature.
+- `TARGET_MARKET`: Gen Z consumers in urban areas.
+- `LAUNCH_GOALS`: Viral awareness on social media, maintain budget <$50k.
+- **Expected behavior**: `<analysis>` addresses budget constraint. `<strategy>` leans on influencer seeding, user-generated content, campus ambassadors. `<scorecard>` includes awareness metrics and risk of saturation.
+- **Pass criteria**: Recommendations respect budget and emphasize organic channels.
+
+### 2.6 Agent X planning template
+
+**Test Case A — Plan a product beta program**
+- `TASK_REQUEST`: Organize beta rollout for enterprise clients.
+- `PLANNING_TOOLS`: Timeline builder, stakeholder map.
+- `COMMUNICATION_PROTOCOLS`: Weekly email updates plus Slack summaries.
+- **Expected behavior**: `<planning>` breaks task into phases, references tools. `<status>` tracks progress vs outstanding needs. `<dialogue>` drafts email/Slack messages delegating execution. `<next_steps>` lists required customer approvals.
+- **Pass criteria**: Agent X never claims to execute tasks, delegations are explicit, communication matches allowed channels.
+
+**Test Case B — Missing execution resources**
+- `TASK_REQUEST`: Launch cross-team incident response playbook.
+- `PLANNING_TOOLS`: RACI matrix, risk register.
+- `COMMUNICATION_PROTOCOLS`: Formal memo only.
+- **Expected behavior**: `<planning>` highlights need for SMEs, `<dialogue>` drafts memo requesting resource allocation, `<next_steps>` spells out dependencies.
+- **Pass criteria**: Model escalates lack of execution tools to user and keeps plan viable.
+
+## 3. Automated Prompt Template Project
+
+### 3.1 Overview
+
+Build an automation layer that (1) generates bespoke prompt templates from the metaprompt and (2) validates them with LLM-powered regression tests. The pipeline accepts a task specification plus optional variables, produces a ready-to-use template, and immediately runs the curated test cases above (or your custom suites) to verify quality.
+
+### 3.2 Project structure
+
+```
+auto-prompt/
+├── config/
+│   └── llm.yaml              # Provider, model, temperature, retry settings
+├── data/
+│   └── tasks/                # YAML/JSON task specs to feed the generator
+├── prompts/
+│   ├── metaprompt.txt        # The master metaprompt (from Section 0)
+│   └── generated/            # Versioned prompt templates per task
+├── tests/
+│   ├── cases/                # Structured test case definitions (see Section 2)
+│   └── transcripts/          # Persisted LLM responses for auditing
+├── src/
+│   ├── generator.py          # Task → prompt template
+│   ├── tester.py             # Template → LLM executions → verdicts
+│   └── orchestrator.py       # CLI entry point combining generation & testing
+└── pyproject.toml            # Dependencies (llm SDK, yaml parser, rich logging)
+```
+
+### 3.3 Environment configuration
+
+1. Create a Python 3.11 virtual environment.
+2. Install dependencies (example): `pip install pydantic openai anthropic rich typer pyyaml`.
+3. Populate `config/llm.yaml` with provider credentials, rate limits, and fallback models.
+4. Store API keys securely (environment variables or secrets manager). Never commit them.
+
+### 3.4 Workflow automation
+
+`orchestrator.py` exposes two high-level commands:
+
+```
+python -m src.orchestrator generate --task-file data/tasks/menu_choice.yaml
+python -m src.orchestrator test --template prompts/generated/menu_choice_v1.md
+```
+
+- **generate**: Loads the task spec, injects it into `metaprompt.txt`, and saves the resulting template with metadata (timestamp, model used, hash of inputs).
+- **test**: Reads the saved template, looks up corresponding test cases in `tests/cases/`, runs them against the configured LLM(s), and records pass/fail outcomes plus model outputs.
+- **run** (combined mode): Regenerates the prompt and automatically executes the test suite in a single call, failing fast if any test does not meet the expected criteria.
+
+### 3.5 LLM test harness
+
+Key features to implement in `tester.py`:
+
+- **Deterministic Inputs**: Each test case stores the variable payloads and acceptance rules (regex assertions, semantic similarity thresholds, or JSON schema checks).
+- **Multiple Judges**: Optionally chain a second LLM as an evaluator to grade outputs against rubrics (helpful for nuanced criteria such as tone or completeness).
+- **Retry & Logging**: On transient LLM errors, retry with exponential backoff. Store raw prompts, responses, latency, and cost for auditing.
+- **Diff Reports**: When a regression occurs, highlight differences between current and golden responses to accelerate triage.
+
+Example test case schema (YAML):
+
+```yaml
+id: menu-balanced
+template: prompts/generated/menu_choice_v1.md
+variables:
+  MENU: |
+    - Tomato Soup (vegetarian, warm)
+    - BBQ Wings (spicy)
+    - Mushroom Risotto (vegetarian)
+  PREFERENCES: "Vegetarian, wants something warm, avoids mushrooms"
+expects:
+  must_include:
+    - "Tomato Soup"
+    - "confidence"
+  must_not_include:
+    - "Mushroom Risotto"
+  evaluation_prompt: |
+    Does the recommendation respect vegetarian and no-mushroom constraints? Reply YES or NO with brief justification.
+```
+
+### 3.6 Verification and monitoring
+
+To verify the project functions correctly:
+
+1. **Smoke test**: Run `python -m src.orchestrator run --task-file data/tasks/menu_choice.yaml`. Confirm the generated template matches the structure in Section 1.1 and all associated tests in Section 2.1 pass.
+2. **Regression sweep**: Execute `python -m src.orchestrator run --task-file data/tasks/*.yaml` nightly. Track pass rate, latency, and cost via dashboards.
+3. **Manual spot check**: Inspect a subset of `tests/transcripts/` weekly to ensure rationale quality remains high even when tests pass.
+4. **Alerting**: Configure CI/CD to fail the pipeline if any regression occurs, and send notifications to the prompt engineering channel.
+5. **Versioning**: Whenever a template or test case changes, bump the semantic version and re-run the full suite before release.
+
+### 3.7 Extending the system
+
+- Add new task specs under `data/tasks/` following the existing schema.
+- Draft prompt templates manually once, then use the generator to refine and store them under `prompts/generated/`.
+- Expand the test suite by translating Section 2 acceptance criteria into machine-checkable assertions.
+- Integrate human review checkpoints for high-risk prompts (e.g., compliance workflows) before automatically deploying updates.
+- Consider multi-model ensembles: generate with Claude, validate with GPT-4, and store cross-model diffs to benchmark quality.
+
+With this structure, the repository now offers end-to-end guidance: generate domain-specific prompt templates, validate them through reproducible LLM tests, and automate future work for new tasks while maintaining quality guarantees.
