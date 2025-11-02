@@ -1,55 +1,16 @@
-# prompt-generator
+"""
+Prompt Generator - Core functionality for generating AI prompt templates.
+"""
+import anthropic
+import re
+from typing import List, Set, Dict
 
-A powerful tool for generating AI prompt templates using Claude. Available as both a Jupyter notebook and command-line Python scripts.
 
-## Quick Links
-
-- **[Jupyter Notebook](Prompt_Generator.ipynb)** - Interactive notebook for Google Colab or local Jupyter
-- **[Python Scripts](SCRIPTS_README.md)** - Command-line tools for automation and batch processing
-- **[Examples](examples/)** - Pre-generated prompt templates
-- **[Test Results](test_results/)** - Sample test outputs
-
-## Python Scripts (NEW!)
-
-The prompt generator is now available as modular Python scripts for easy integration into your workflow:
-
-- `prompt_generator.py` - Core module with all functionality
-- `generate_prompt.py` - Generate a single prompt from a task description
-- `test_prompt.py` - Test prompts with sample data
-- `generate_quickstart_examples.py` - Batch generate all quickstart examples
-- `generate_test_cases.py` - Automatically test all generated prompts
-- `complex_task_verification.py` - Verify with complex tasks
-
-**Quick Start with Scripts:**
-```bash
-# Set up
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-export ANTHROPIC_API_KEY='your-key-here'
-
-# Generate a prompt
-./generate_prompt.py "Draft an email responding to a customer complaint" --output my_prompt.json
-
-# Test it interactively
-./test_prompt.py my_prompt.json --interactive
-```
-
-See [SCRIPTS_README.md](SCRIPTS_README.md) for detailed documentation.
-
-# Table of Contents
-
-0. The Metaprompt
-1. Quickstart - Enter a task, get a prompt template
-2. Testing your prompt template
-
-## 0. The Metaprompt
-
-The Metaprompt is a long multi-shot prompt filled with half a dozen examples of good prompts for solving various tasks. These examples help Claude to write a good prompt for your task. The full text is below (warning: it's long!)
-
-**Metaprompt Text**
-```
-Today you will be writing instructions to an eager, helpful, but inexperienced and unworldly AI assistant who needs careful instruction and examples to understand how best to behave. I will explain a task to you. You will write instructions that will direct the assistant on how best to accomplish the task consistently, accurately, and correctly. Here are some examples of tasks and instructions.
+class PromptGenerator:
+    """Main class for generating and testing prompt templates using Claude."""
+    
+    # Metaprompt text
+    METAPROMPT = '''Today you will be writing instructions to an eager, helpful, but inexperienced and unworldly AI assistant who needs careful instruction and examples to understand how best to behave. I will explain a task to you. You will write instructions that will direct the assistant on how best to accomplish the task consistently, accurately, and correctly. Here are some examples of tasks and instructions.
 
 <Task Instruction Example>
 <Task>
@@ -517,32 +478,363 @@ Note: This is probably obvious to you already, but you are not *completing* the 
 Note: Another name for what you are writing is a "prompt template". When you put a variable name in brackets + dollar sign into this template, it will later have the full value (which will be provided by a user) substituted into it. This only needs to happen once for each variable. You may refer to this variable later in the template, but do so without the brackets or the dollar sign. Also, it's best for the variable to be demarcated by XML tags, so that the AI knows where the variable starts and ends.
 Note: When instructing the AI to provide an output (e.g. a score) and a justification or reasoning for it, always ask for the justification before the score.
 Note: If the task is particularly complicated, you may wish to instruct the AI to think things out beforehand in scratchpad or inner monologue XML tags before it gives its final answer. For simple tasks, omit this.
-Note: If you want the AI to output its entire response or parts of its response inside certain tags, specify the name of these tags (e.g. "write your answer inside <answer> tags") but do not include closing tags or unnecessary open-and-close tag sections.
-```
+Note: If you want the AI to output its entire response or parts of its response inside certain tags, specify the name of these tags (e.g. "write your answer inside <answer> tags") but do not include closing tags or unnecessary open-and-close tag sections.'''
 
+    REMOVE_FLOATING_VARIABLES_PROMPT = """I will give you a prompt template with one or more usages of variables (capitalized words between curly braces with a dollar sign). Some of these usages are erroneous and should be replaced with the unadorned variable name (possibly with minor cosmetic changes to the sentence). What does it mean for a usage to be "erroneous"? It means that when the variable is replaced by its actual value, the sentence would be ungrammatical, nonsensical, or otherwise inappropriate.
 
-# 1. Quickstart
-Here are some examples for inspiration:
-- Choose an item from a menu for me given user preferences
-- Rate a resume according to a rubric
-- Explain a complex scientific concept in simple terms
-- Draft an email responding to a customer complaint
-- Design a marketing strategy for launching a new product
-- an agent who named 'X' can plan and execute tasks with system tools for planning and user communication, with the distinction that the tools for execution are to be provided by the user
+For example, take this prompt:
 
-There are two examples of tasks + optional variables below.
-```
-TASK = "Draft an email responding to a customer complaint" # Replace with your task!
-# Optional: specify the input variables you want Claude to use. If you want Claude to choose, you can set `variables` to an empty list!
-VARIABLES = []
-# VARIABLES = ["CUSTOMER_COMPLAINT", "COMPANY_NAME"]
-# If you want Claude to choose the variables, just leave VARIABLES as an empty list.
+<example_prompt>
+You are an AI assistant that specializes in helping users grade a resume according to a rubric that I will provide. Your task is to read the {$RESUME} closely and evaluate it according to each of the criteria listed in the {$RUBRIC}.
 
-# TASK = "Choose an item from a menu for me given my preferences"
-# VARIABLES = []
-# VARIABLES = ["MENU", "PREFERENCES"]
-```
+Here is the resume you will be assessing:
+<resume>
+{$RESUME}
+</resume>
 
-# 2. Testing
+And here is the rubric you will be using:
+<rubric>
+{$RUBRIC}
+</rubric>
 
+First, in a <scratchpad>, go through each of the criteria in the rubric and consider how well the resume meets each one. Then, provide a <score> for that individual criteria. Consider individual elements of the resume and whether or not they meet the criteria.
 
+Once you have scored each criteria, provide an overall <score> for the resume and justify your assessment in <justification> tags.
+</example_prompt>
+
+Here are the variables, their texts and usages, and whether or not the usages are erroneous. A *variable* is a word or phrase that is used as a placeholder for various inputs that will be provided by the user. In the prompt, variables are denoted by surrounding brackets and a dollar sign, like this:
+
+{$VARIABLE}
+
+The *text* of a usage is the sentence or phrase in which the variable appears. The *apt* tag indicates whether the variable has been aptly and appropriately used. If the usage is actually intended to just be the plain text of the variable name, it's inapt.
+
+<variables>
+<variable>
+<name>
+{$RESUME}
+</name>
+<usages>
+<usage>
+<text>
+Your task is to read the {$RESUME} closely and evaluate it according to each of the criteria listed in the {$RUBRIC}.
+<text>
+<thinking>
+Replacing "{$RESUME}" with an actual resume would not make sense in the context of this sentence.
+Replacing "{$MENU}" with the word "resume" would make more sense.
+</thinking>
+<apt>
+No
+</apt>
+<usage>
+<usage>
+<text>
+Here is the resume you will be assessing:
+<resume>
+{$RESUME}
+</resume>
+<text>
+<thinking>
+Here, the "{$RESUME}" variable is introduced by the phrase "Here is the resume you will be assessing:" and wrapped in XML tags. Substituting the full resume would make total sense. In contrast, replacing it with the mere *word* "resume" would not be correct because there's an expectation that the actual resume should go here.
+</thinking>
+<apt>
+Yes
+</apt>
+<usage>
+</usages>
+</variable>
+<variable>
+<name>
+{$RUBRIC}
+</name>
+<usages>
+<usage>
+<text>
+Your task is to read the {$RESUME} closely and evaluate it according to each of the criteria listed in the {$RUBRIC}.
+</text>
+<apt>
+No
+</apt>
+</usage>
+<usage>
+<text>
+And here is the rubric you will be using:
+<rubric>
+{$RUBRIC}
+</rubric>
+</text>
+<apt>
+Yes
+</apt>
+</usage>
+</usages>
+</variable>
+</variables>
+
+In general, inline variable usages (not surrounded by XML tags) are only apt when they BOTH 1. refer to a variable that would be expected to be quite short, and also 2. exist within grammatical structures that would make sense after a subsitution.
+
+Here are some more example usages along with whether or not they are apt.
+
+<example>
+<text>
+Always keep in mind your ultimate {$GOAL} when completing this task.
+</text>
+<thinking>
+Replacing "{$GOAL}" with an actual goal, a la "Always keep in mind your ultimate Becoming the best basketball player in the world when completing this task" would not make logical/grammaticall sense.
+Replacing "{$GOAL}" with "goal", on the other hand, makes total sense.
+</thinking>
+<apt>
+No
+</apt>
+</example>
+<example>
+<text>
+The email should be addressed to the {$RECIPIENT}.
+</text>
+<thinking>
+Substituting a recipient like bobjones23@gmail.com would lead to "The email should be addressed to the bobjones23@gmail.com." which is almost grammatical but not quite because of the "the".
+"The email should be addressed to the recipient" is perfectly coherent English.
+</thinking>
+<apt>
+No
+</apt>
+</example>
+<example>
+<text>
+Each usage of the word 'apple' should be replaced with one of the {$SUBSTITUTE_FRUITS} options.
+</text>
+<thinking>
+{$SUBSTITUTE_FRUITS} is a list of fruits. Replacing {$SUBSTITUTE_FRUITS} with "apple, banana, cherry" would not quite make sense in this context, but it would be fine to replace it with "substitute fruit", or to write "with one of these options: {$SUBSTITUTE_FRUITS}.".
+</thinking>
+<apt>
+No
+</apt>
+</example>
+<example>
+<text>
+When completing your task, please consider this goal:
+<goal>
+{$GOAL}
+</goal>
+</text>
+<thinking>
+The use of the colon and the XML tags indicates that the actual goal is expected here.
+</thinking>
+<apt>
+Yes
+</apt>
+</example>
+<example>
+<text>
+The email should be addressed to this person: {$RECIPIENT}.
+</text>
+<thinking>
+Here replacing "{$RECIPIENT}" with an email address would make sense because of the colon. Replacing it with just the word "recipient" would not make sense.
+</thinking>
+<apt>
+Yes
+</apt>
+</example>
+<example>
+<text>
+Each usage of the word 'apple' should be replaced with one of the following options:
+<substitute_fruits>
+{$SUBSTITUTE_FRUITS}
+</substitute_fruits>
+</text>
+<apt>
+Yes
+</apt>
+</example>
+<example>
+<text>
+Each instance of "{$FRUIT}" must be replaced with a vegetable.
+</text>
+<thinking>
+Because of the quotation marks, substituting the actual name of the fruit, a la 'Each instance of "apple" must be replaced with a vegetable', would make sense.
+</thinking>
+<apt>
+Yes
+</apt>
+</example>
+
+Now that you've read and internalized the examples, please consider the following prompt:
+<prompt>
+{$PROMPT}
+</prompt>
+
+Create an output like the <variables> block above, in which you list all the variables used in the prompt, their usages, your thinking (in <thinking> tags) about their aptness, and finally whether they are apt or inapt. While thinking, first consider each replacement before reaching a conclusion about aptness. If the usage seems grievously inapt (err on the side of presuming correctness), propose a rewrite.
+
+Then, rewrite the prompt. Adapt each inapt variable use according to the remedy you proposed in the corresponding <thinking> tags. Put this rewrite in a <rewritten_prompt> tag. For apt variable usages, don't make any changes to that area of the prompt. If all usages are deemed apt, you may indicate this by simply writing "No changes." within the <rewritten_prompt> tags.
+
+Important rule: Your rewritten prompt must always include each variable at least once. If there is a variable for which all usages are inapt, introduce the variable at the beginning in an XML-tagged block, analogous to some of the usages in the examples above."""
+    
+    def __init__(self, api_key: str, model_name: str = "claude-3-5-sonnet-20241022"):
+        """
+        Initialize the PromptGenerator.
+        
+        Args:
+            api_key: Anthropic API key
+            model_name: Claude model to use (default: claude-3-5-sonnet-20241022)
+        """
+        self.client = anthropic.Anthropic(api_key=api_key)
+        self.model_name = model_name
+    
+    @staticmethod
+    def extract_between_tags(tag: str, string: str, strip: bool = False) -> List[str]:
+        """Extract content between XML tags."""
+        ext_list = re.findall(f"<{tag}>(.+?)</{tag}>", string, re.DOTALL)
+        if strip:
+            ext_list = [e.strip() for e in ext_list]
+        return ext_list
+    
+    @staticmethod
+    def remove_empty_tags(text: str) -> str:
+        """Remove empty XML tags from text."""
+        return re.sub(r'\n<(\w+)>\s*</\1>\n', '', text, flags=re.DOTALL)
+    
+    @staticmethod
+    def strip_last_sentence(text: str) -> str:
+        """Strip the last sentence if it starts with 'Let me know'."""
+        sentences = text.split('. ')
+        if sentences[-1].startswith("Let me know"):
+            sentences = sentences[:-1]
+            result = '. '.join(sentences)
+            if result and not result.endswith('.'):
+                result += '.'
+            return result
+        return text
+    
+    def extract_prompt(self, metaprompt_response: str) -> str:
+        """Extract the prompt template from metaprompt response."""
+        between_tags = self.extract_between_tags("Instructions", metaprompt_response)[0]
+        return between_tags[:1000] + self.strip_last_sentence(
+            self.remove_empty_tags(self.remove_empty_tags(between_tags[1000:]).strip()).strip()
+        )
+    
+    @staticmethod
+    def extract_variables(prompt: str) -> Set[str]:
+        """Extract variable names from prompt template."""
+        pattern = r'{([^}]+)}'
+        variables = re.findall(pattern, prompt)
+        return set(variables)
+    
+    @staticmethod
+    def find_free_floating_variables(prompt: str) -> List[str]:
+        """Find variables that are not inside XML tags."""
+        variable_usages = re.findall(r'\{\$[A-Z0-9_]+\}', prompt)
+        
+        free_floating_variables = []
+        for variable in variable_usages:
+            preceding_text = prompt[:prompt.index(variable)]
+            open_tags = set()
+            
+            i = 0
+            while i < len(preceding_text):
+                if preceding_text[i] == '<':
+                    if i + 1 < len(preceding_text) and preceding_text[i + 1] == '/':
+                        closing_tag = preceding_text[i + 2:].split('>', 1)[0]
+                        open_tags.discard(closing_tag)
+                        i += len(closing_tag) + 3
+                    else:
+                        opening_tag = preceding_text[i + 1:].split('>', 1)[0]
+                        open_tags.add(opening_tag)
+                        i += len(opening_tag) + 2
+                else:
+                    i += 1
+            
+            if not open_tags:
+                free_floating_variables.append(variable)
+        
+        return free_floating_variables
+    
+    def remove_inapt_floating_variables(self, prompt: str) -> str:
+        """Remove or fix inapt floating variables in the prompt."""
+        message = self.client.messages.create(
+            model=self.model_name,
+            messages=[{
+                'role': "user",
+                'content': self.REMOVE_FLOATING_VARIABLES_PROMPT.replace("{$PROMPT}", prompt)
+            }],
+            max_tokens=4096,
+            temperature=0
+        ).content[0].text
+        return self.extract_between_tags("rewritten_prompt", message)[0]
+    
+    def generate_prompt(self, task: str, variables: List[str] = None) -> Dict[str, any]:
+        """
+        Generate a prompt template for a given task.
+        
+        Args:
+            task: Description of the task
+            variables: Optional list of variable names to use
+            
+        Returns:
+            Dictionary containing the prompt template and variables
+        """
+        if variables is None:
+            variables = []
+        
+        variable_string = ""
+        for variable in variables:
+            variable_string += "\n{$" + variable.upper() + "}"
+        
+        prompt = self.METAPROMPT.replace("{{TASK}}", task)
+        assistant_partial = "<Inputs>"
+        if variable_string:
+            assistant_partial += variable_string + "\n</Inputs>\n<Instructions Structure>"
+        
+        message = self.client.messages.create(
+            model=self.model_name,
+            max_tokens=4096,
+            messages=[
+                {"role": "user", "content": prompt},
+                {"role": "assistant", "content": assistant_partial}
+            ],
+            temperature=0
+        ).content[0].text
+        
+        extracted_prompt_template = self.extract_prompt(message)
+        extracted_variables = self.extract_variables(message)
+        
+        floating_variables = self.find_free_floating_variables(extracted_prompt_template)
+        if len(floating_variables) > 0:
+            extracted_prompt_template = self.remove_inapt_floating_variables(extracted_prompt_template)
+        
+        return {
+            'prompt_template': extracted_prompt_template,
+            'variables': extracted_variables,
+            'raw_response': message
+        }
+    
+    def test_prompt(self, prompt_template: str, variable_values: Dict[str, str]) -> str:
+        """
+        Test a prompt template with specific variable values.
+        
+        Args:
+            prompt_template: The prompt template with variables
+            variable_values: Dictionary mapping variable names to their values
+            
+        Returns:
+            Claude's response to the prompt
+        """
+        prompt_with_variables = prompt_template
+        for variable, value in variable_values.items():
+            prompt_with_variables = prompt_with_variables.replace("{" + variable + "}", value)
+        
+        message = self.client.messages.create(
+            model=self.model_name,
+            max_tokens=4096,
+            messages=[{"role": "user", "content": prompt_with_variables}],
+            temperature=0
+        ).content[0].text
+        
+        return message
+    
+    @staticmethod
+    def pretty_print(message: str) -> str:
+        """Format message for better readability."""
+        return '\n\n'.join(
+            '\n'.join(
+                line.strip() for line in re.findall(r'.{1,100}(?:\s+|$)', paragraph.strip('\n'))
+            ) for paragraph in re.split(r'\n\n+', message)
+        )

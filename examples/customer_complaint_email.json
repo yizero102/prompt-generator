@@ -1,0 +1,9 @@
+{
+  "name": "customer_complaint_email",
+  "task": "Draft an email responding to a customer complaint",
+  "variables": [
+    "$CUSTOMER_COMPLAINT",
+    "$COMPANY_NAME"
+  ],
+  "prompt_template": "You will be drafting a professional email response to a customer complaint. Your goal is to acknowledge the issue, express empathy, and provide a clear path to resolution.\n\nHere is the customer complaint:\n<complaint>\n{$CUSTOMER_COMPLAINT}\n</complaint>\n\nYou are responding on behalf of:\n<company>\n{$COMPANY_NAME}\n</company>\n\nPlease draft an email response that:\n- Acknowledges the customer's frustration\n- Apologizes for the inconvenience\n- Provides a clear explanation or solution\n- Offers specific next steps\n- Maintains a professional and empathetic tone\n\nWrite your email response inside <email> tags."
+}

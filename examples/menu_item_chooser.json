@@ -1,0 +1,9 @@
+{
+  "name": "menu_item_chooser",
+  "task": "Choose an item from a menu for me given user preferences",
+  "variables": [
+    "$MENU",
+    "$PREFERENCES"
+  ],
+  "prompt_template": "You will be helping a user choose the best item from a menu based on their preferences.\n\nHere is the menu:\n<menu>\n{$MENU}\n</menu>\n\nHere are the user's preferences:\n<preferences>\n{$PREFERENCES}\n</preferences>\n\nPlease analyze the menu items against the user's preferences and recommend the best option. In your response:\n1. Consider all stated preferences (dietary restrictions, taste preferences, budget, etc.)\n2. Explain why your recommendation matches their preferences\n3. If applicable, suggest a second choice as an alternative\n\nProvide your recommendation inside <recommendation> tags."
+}
