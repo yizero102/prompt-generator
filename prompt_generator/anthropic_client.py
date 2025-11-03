@@ -4,10 +4,20 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from typing import Iterator, Literal, Optional, Union, cast
+from typing import TYPE_CHECKING, Iterator, Literal, Optional, Union, cast
 
 from anthropic import Anthropic
-from openai import OpenAI
+
+if TYPE_CHECKING:  # pragma: no cover - import solely for static type checking
+    from openai import OpenAI
+else:  # pragma: no cover - executed at runtime
+    try:
+        from openai import OpenAI  # type: ignore
+    except ImportError as exc:  # pragma: no cover - handled gracefully below
+        OpenAI = None  # type: ignore
+        _OPENAI_IMPORT_ERROR: Optional[ImportError] = exc
+    else:
+        _OPENAI_IMPORT_ERROR = None
 
 Provider = Literal["anthropic", "openai"]
 
@@ -17,6 +27,15 @@ def _normalize_env_value(value: Optional[str]) -> Optional[str]:
         return None
     stripped = value.strip()
     return stripped or None
+
+
+def _ensure_openai_available() -> None:
+    if OpenAI is None:
+        message = (
+            "The OpenAI SDK is not installed. Install it with 'pip install openai' "
+            "or configure `_LLM_PROVIDER=anthropic`."
+        )
+        raise RuntimeError(message) from _OPENAI_IMPORT_ERROR
 
 
 @dataclass(frozen=True)
@@ -83,9 +102,11 @@ class OpenAIConfig:
 
         return cls(api_key=api_key, model_name=model_name, base_url=base_url)
 
-    def create_client(self) -> OpenAI:
+    def create_client(self):  # -> OpenAI:
         """Instantiate an OpenAI client using the stored configuration."""
 
+        _ensure_openai_available()
+        assert OpenAI is not None  # Placate type checkers
         return OpenAI(api_key=self.api_key, base_url=self.base_url)
 
 
@@ -93,11 +114,11 @@ class OpenAIConfig:
 class LLMClient:
     """Wrapper that normalizes chat completion calls across providers."""
 
-    client: Union[Anthropic, OpenAI]
+    client: Union[Anthropic, "OpenAI"]
     model_name: str
     provider: Provider
 
-    def __iter__(self) -> Iterator[Union[Anthropic, OpenAI, str]]:
+    def __iter__(self) -> Iterator[Union[Anthropic, "OpenAI", str]]:
         """Allow tuple-style unpacking (client, model_name)."""
 
         yield self.client
@@ -106,7 +127,7 @@ class LLMClient:
     @classmethod
     def from_components(
         cls,
-        client: Union[Anthropic, OpenAI],
+        client: Union[Anthropic, "OpenAI"],
         model_name: str,
         provider: Provider,
     ) -> "LLMClient":
@@ -125,7 +146,8 @@ class LLMClient:
         openai_kwargs = dict(kwargs)
         if extra_body is None:
             extra_body = {"reasoning_split": True}
-        return self.client.chat.completions.create(
+        # OpenAI client is duck-typed in tests, so we skip strict type checks here.
+        return self.client.chat.completions.create(  # type: ignore[attr-defined]
             model=self.model_name,
             messages=messages,
             extra_body=extra_body,
@@ -200,11 +222,12 @@ def get_client(
             f"{type(config)!r}"
         )
 
-    return LLMClient.from_components(cfg.create_client(), cfg.model_name, "openai")
+    client = cfg.create_client()
+    return LLMClient.from_components(client, cfg.model_name, "openai")
 
 
 def ensure_llm_client(
-    client: Optional[Union[LLMClient, Anthropic, OpenAI]] = None,
+    client: Optional[Union[LLMClient, Anthropic, "OpenAI"]] = None,
     model_name: Optional[str] = None,
     *,
     provider: Optional[str] = None,
@@ -222,14 +245,20 @@ def ensure_llm_client(
             "Both 'client' and 'model_name' must be provided when supplying a raw SDK client."
         )
 
+    detected_provider: Optional[str] = None
     if isinstance(client, Anthropic):
-        inferred_provider: Provider = "anthropic"
-    elif isinstance(client, OpenAI):
-        inferred_provider = "openai"
-    else:
+        detected_provider = "anthropic"
+    elif OpenAI is not None and isinstance(client, OpenAI):
+        detected_provider = "openai"
+
+    target_provider = provider or detected_provider
+    if not target_provider:
         raise TypeError(
-            "Unsupported client type. Provide an Anthropic, OpenAI, or LLMClient instance."
+            "Unsupported client type. Provide an Anthropic/OpenAI client or specify 'provider'."
         )
 
-    resolved_provider = _normalize_provider(provider or inferred_provider)
+    resolved_provider = _normalize_provider(target_provider)
+    if resolved_provider == "openai":
+        _ensure_openai_available()
+
     return LLMClient.from_components(client, model_name, resolved_provider)
