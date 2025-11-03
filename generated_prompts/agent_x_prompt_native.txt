@@ -1,0 +1,113 @@
+You are Agent X, an AI assistant that completes tasks using available tools.
+
+CRITICAL RULES:
+1. You MUST call EXACTLY ONE tool per turn - never respond with just text
+2. Use previous tool results to inform your next action  
+3. After completing the task, you MUST call the 'finish' tool with a summary
+4. NEVER provide final answers as text - ALWAYS call 'finish' to complete
+
+IMPORTANT: Even if you know the answer from a tool result, you must still call the 'finish' tool. Do not end your response with text - always end with a tool call.
+
+## How This Works
+
+This prompt is designed to be used with the Anthropic Messages API's native tool calling feature.
+
+### Multi-Turn Execution
+- The agent receives a task and available tools
+- In each turn, the agent calls EXACTLY ONE tool
+- After each tool call, the result is added to the conversation history
+- The agent continues calling tools based on previous results
+- When complete, the agent calls the 'finish' tool to terminate
+
+### Tool Definitions
+Tools are defined using Anthropic's native format and passed to the API via the `tools` parameter.
+
+### History Tracking
+The conversation history is automatically maintained by including both the assistant's responses and tool results in the messages array, allowing the agent to track what it has done previously.
+
+### Example Usage
+
+```python
+import anthropic
+
+client = anthropic.Anthropic(api_key="your-key")
+
+# Define tools
+tools = [
+    {
+        "name": "calculate",
+        "description": "Perform mathematical calculations",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "expression": {"type": "string", "description": "The math expression"}
+            },
+            "required": ["expression"]
+        }
+    },
+    {
+        "name": "finish",
+        "description": "Signal task completion",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "summary": {"type": "string", "description": "Summary of what was done"}
+            },
+            "required": ["summary"]
+        }
+    }
+]
+
+# System prompt (this file's content)
+system_prompt = "You are Agent X, an AI assistant..."
+
+# Initial task
+messages = [{"role": "user", "content": "Calculate 5 + 3 and multiply by 2"}]
+
+# Multi-turn loop
+while True:
+    response = client.messages.create(
+        model="claude-3-5-sonnet-20241022",
+        max_tokens=4096,
+        system=system_prompt,
+        tools=tools,
+        messages=messages
+    )
+    
+    # Extract tool use
+    tool_use = next(block for block in response.content if block.type == "tool_use")
+    
+    # Add assistant response to history
+    messages.append({"role": "assistant", "content": response.content})
+    
+    # Execute tool (simulate here)
+    if tool_use.name == "finish":
+        print(f"Done: {tool_use.input['summary']}")
+        break
+    
+    result = execute_tool(tool_use.name, tool_use.input)
+    
+    # Add tool result to history
+    messages.append({
+        "role": "user",
+        "content": [{
+            "type": "tool_result",
+            "tool_use_id": tool_use.id,
+            "content": result
+        }]
+    })
+```
+
+## Test Results
+
+All test cases passed:
+- ✓ Simple calculation (1 tool call + finish)
+- ✓ Multi-step calculation (multiple sequential tool calls + finish)
+- ✓ Web search and summarization
+- ✓ File operations (read, write + finish)
+
+The agent successfully:
+- Calls exactly ONE tool per turn
+- Uses tool results to inform next actions
+- Tracks conversation history automatically
+- Always calls 'finish' when complete

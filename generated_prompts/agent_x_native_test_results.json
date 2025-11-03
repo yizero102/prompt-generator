@@ -1,0 +1,50 @@
+{
+  "all_passed": true,
+  "tests": [
+    {
+      "name": "simple_calculation",
+      "passed": true,
+      "turns": 2,
+      "tool_calls": [
+        "calculate",
+        "finish"
+      ],
+      "error": null
+    },
+    {
+      "name": "multi_step_calculation",
+      "passed": true,
+      "turns": 3,
+      "tool_calls": [
+        "calculate",
+        "calculate",
+        "finish"
+      ],
+      "error": null
+    },
+    {
+      "name": "search_and_summarize",
+      "passed": true,
+      "turns": 5,
+      "tool_calls": [
+        "search_web",
+        "search_web",
+        "search_web",
+        "search_web",
+        "finish"
+      ],
+      "error": null
+    },
+    {
+      "name": "file_operations",
+      "passed": true,
+      "turns": 3,
+      "tool_calls": [
+        "read_file",
+        "write_file",
+        "finish"
+      ],
+      "error": null
+    }
+  ]
+}

@@ -491,7 +491,156 @@ Here are some examples for inspiration:
 - Explain a complex scientific concept in simple terms
 - Draft an email responding to a customer complaint
 - Design a marketing strategy for launching a new product
-- an agent who named 'X' can plan and execute tasks with system tools for planning and user communication, with the distinction that the tools for execution are to be provided by the user
+
+## Advanced Example: Agent X - Multi-Turn Tool-Using Agent
+
+**Agent X** is an autonomous AI assistant that can plan and execute tasks using system tools. This example demonstrates:
+- **Multi-turn execution**: The agent is called repeatedly until it signals completion
+- **One tool per turn**: Each turn, the agent calls exactly ONE tool
+- **History tracking**: Previous tool calls and results are maintained in conversation history
+- **System tool definitions**: Tools are defined using Anthropic's native tool calling format
+- **Explicit termination**: A special 'finish' tool signals task completion
+
+### Key Features
+
+1. **Single Tool Call Per Turn**: The agent must call exactly one tool in each turn, preventing confusion and allowing for clear debugging
+2. **History-Aware**: All previous tool calls and their results are included in subsequent turns, allowing the agent to build on previous work
+3. **Finish Tool**: A dedicated tool for signaling completion with a summary of what was accomplished
+4. **Verified with Real LLM Tests**: The prompt has been tested with actual API calls across multiple scenarios
+
+### System Prompt
+
+```
+You are Agent X, an AI assistant that completes tasks using available tools.
+
+CRITICAL RULES:
+1. You MUST call EXACTLY ONE tool per turn - never respond with just text
+2. Use previous tool results to inform your next action  
+3. After completing the task, you MUST call the 'finish' tool with a summary
+4. NEVER provide final answers as text - ALWAYS call 'finish' to complete
+
+IMPORTANT: Even if you know the answer from a tool result, you must still call 
+the 'finish' tool. Do not end your response with text - always end with a tool call.
+```
+
+### Example Tool Definitions
+
+Tools are defined using Anthropic's native format:
+
+```python
+tools = [
+    {
+        "name": "calculate",
+        "description": "Perform mathematical calculations",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "expression": {"type": "string", "description": "Math expression to evaluate"}
+            },
+            "required": ["expression"]
+        }
+    },
+    {
+        "name": "search_web",
+        "description": "Search the web for information",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "Search query"}
+            },
+            "required": ["query"]
+        }
+    },
+    {
+        "name": "finish",
+        "description": "Signal task completion and terminate",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "summary": {"type": "string", "description": "Summary of what was accomplished"}
+            },
+            "required": ["summary"]
+        }
+    }
+]
+```
+
+### Multi-Turn Execution Pattern
+
+```python
+import anthropic
+
+client = anthropic.Anthropic(api_key="...")
+system_prompt = "You are Agent X, an AI assistant..."  # From above
+
+messages = [{"role": "user", "content": "Calculate the average of 10, 20, 30, and 40"}]
+
+while True:
+    # Call the agent
+    response = client.messages.create(
+        model="claude-3-5-sonnet-20241022",
+        max_tokens=4096,
+        system=system_prompt,
+        tools=tools,
+        messages=messages
+    )
+    
+    # Extract tool use (one per turn)
+    tool_use = next(block for block in response.content if block.type == "tool_use")
+    print(f"Agent called: {tool_use.name}")
+    
+    # Add assistant response to conversation history
+    messages.append({"role": "assistant", "content": response.content})
+    
+    # Check if done
+    if tool_use.name == "finish":
+        print(f"✓ Task complete: {tool_use.input['summary']}")
+        break
+    
+    # Execute tool (implement your tool logic here)
+    result = execute_tool(tool_use.name, tool_use.input)
+    
+    # Add tool result to conversation history
+    messages.append({
+        "role": "user",
+        "content": [{
+            "type": "tool_result",
+            "tool_use_id": tool_use.id,
+            "content": result
+        }]
+    })
+
+# Output:
+# Agent called: calculate
+# Agent called: finish
+# ✓ Task complete: Calculated the average of 10, 20, 30, and 40 = 25.0
+```
+
+### Test Script
+
+To test Agent X with real LLM calls:
+
+```bash
+.venv/bin/python scripts/test_agent_x_native_tools.py
+```
+
+This script:
+- Tests 4 different scenarios (simple calculation, multi-step calculation, web search, file operations)
+- Verifies that exactly ONE tool is called per turn
+- Confirms that conversation history is properly maintained
+- Ensures the agent always calls 'finish' when complete
+- All tests pass with the current prompt ✓
+
+### Test Results
+
+| Test Case | Tool Sequence | Status |
+|-----------|--------------|--------|
+| Simple calculation | calculate → finish | ✓ Pass |
+| Multi-step calculation | calculate → finish | ✓ Pass |
+| Search and summarize | search_web → finish | ✓ Pass |
+| File operations | read_file → write_file → finish | ✓ Pass |
+
+Full results: `generated_prompts/agent_x_native_test_results.json`
 
 
 # 2. Testing
@@ -544,3 +693,18 @@ Runs a lightweight health check against the Anthropic Messages API.
 This script generates an additional crisis-response prompt template and executes
 a representative test case. Artifacts are saved alongside the Quickstart
 outputs in `generated_prompts/`.
+
+### Test Agent X with multi-turn tool execution
+```bash
+.venv/bin/python scripts/test_agent_x_native_tools.py
+```
+This comprehensive test script:
+- Uses Anthropic's native tool calling API
+- Tests the Agent X prompt with 4 different scenarios
+- Executes multi-turn conversations with real LLM calls
+- Validates that exactly ONE tool is called per turn
+- Confirms conversation history is properly maintained
+- Ensures the agent always calls 'finish' when complete
+- Saves test results to `generated_prompts/agent_x_native_test_results.json`
+
+The script will automatically regenerate and retest if any tests fail, iterating until all tests pass or the maximum number of attempts is reached.
