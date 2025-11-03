@@ -5,6 +5,11 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from pathlib import Path
+import sys
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+
 from prompt_generator.anthropic_client import LLMClient, ensure_llm_client, get_client
 from prompt_generator.generation import _collect_content_blocks
 

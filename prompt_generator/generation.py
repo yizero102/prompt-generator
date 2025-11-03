@@ -138,7 +138,10 @@ def _strip_last_sentence(text: str) -> str:
 
 
 def _extract_prompt(metaprompt_response: str) -> str:
-    instructions = _extract_between_tags("Instructions", metaprompt_response)[0]
+    instruction_blocks = _extract_between_tags("Instructions", metaprompt_response)
+    if not instruction_blocks:
+        return metaprompt_response.strip()
+    instructions = instruction_blocks[0]
     head = instructions[:1000]
     tail = instructions[1000:]
     cleaned_tail = _strip_last_sentence(_remove_empty_tags(_remove_empty_tags(tail).strip()).strip())
@@ -173,6 +176,41 @@ def _find_free_floating_variables(prompt: str) -> List[str]:
         if not open_tags:
             free_floating_variables.append(variable)
     return free_floating_variables
+
+
+def _ensure_requested_placeholders(prompt: str, requested_variables: Sequence[str]) -> str:
+    if not requested_variables:
+        return prompt
+
+    placeholders = _extract_variables(prompt)
+    normalized_requested = [var.upper() for var in requested_variables]
+    matched: set[str] = set()
+
+    for placeholder in placeholders:
+        normalized = placeholder.lstrip("$").upper()
+        if normalized in normalized_requested and normalized not in matched:
+            matched.add(normalized)
+
+    missing = [var for var in normalized_requested if var not in matched]
+    if missing:
+        for placeholder in placeholders:
+            normalized = placeholder.lstrip("$").upper()
+            if normalized in normalized_requested:
+                continue
+            if not missing:
+                break
+            target = missing.pop(0)
+            prompt = prompt.replace("{" + placeholder + "}", "{$" + target + "}")
+            matched.add(target)
+
+    placeholders = _extract_variables(prompt)
+    present = {ph.lstrip("$").upper() for ph in placeholders}
+    still_missing = [var for var in normalized_requested if var not in present]
+    if still_missing:
+        fallback = "<Inputs>\n" + "\n".join("{$" + var + "}" for var in normalized_requested) + "\n</Inputs>\n"
+        prompt = fallback + prompt
+
+    return prompt
 
 
 def _remove_inapt_floating_variables(prompt: str, llm_client: LLMClient) -> Tuple[Optional[str], str]:
@@ -247,6 +285,12 @@ def generate_prompt_template(
         if rewritten_prompt:
             final_prompt_template = rewritten_prompt
             identified_variables = _extract_variables(final_prompt_template)
+
+    final_prompt_template = _ensure_requested_placeholders(
+        final_prompt_template, normalized_variables
+    )
+    identified_variables = _extract_variables(final_prompt_template)
+    floating_variables = _find_free_floating_variables(final_prompt_template)
 
     return GeneratedPrompt(
         task=task,

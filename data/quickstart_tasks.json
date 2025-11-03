@@ -1,26 +1,26 @@
 [
   {
     "task": "Choose an item from a menu for me given user preferences",
-    "variables": []
+    "variables": ["MENU", "USER_PREFERENCES"]
   },
   {
     "task": "Rate a resume according to a rubric",
-    "variables": []
+    "variables": ["RESUME", "RUBRIC"]
   },
   {
     "task": "Explain a complex scientific concept in simple terms",
-    "variables": []
+    "variables": ["CONCEPT", "AUDIENCE_LEVEL"]
   },
   {
     "task": "Draft an email responding to a customer complaint",
-    "variables": []
+    "variables": ["CUSTOMER_COMPLAINT", "COMPANY_INFO", "RESPONSE_GUIDELINES"]
   },
   {
     "task": "Design a marketing strategy for launching a new product",
-    "variables": []
+    "variables": ["PRODUCT_DETAILS", "MARKET_CONTEXT"]
   },
   {
     "task": "An agent who named 'X' can plan and execute tasks with system tools for planning and user communication, with the distinction that the tools for execution are to be provided by the user",
-    "variables": []
+    "variables": ["TASK", "TOOLS"]
   }
 ]

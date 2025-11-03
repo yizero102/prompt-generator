@@ -23,7 +23,13 @@ class PromptTestResult:
 def _fill_template(template: str, variables: Mapping[str, str]) -> str:
     prompt = template
     for name, value in variables.items():
-        prompt = prompt.replace("{" + name + "}", value)
+        variants = {name}
+        if name.startswith("$"):
+            variants.add(name[1:])
+        else:
+            variants.add("$" + name)
+        for variant in variants:
+            prompt = prompt.replace("{" + variant + "}", value)
     return prompt
 
 

@@ -496,7 +496,13 @@ Here are some examples for inspiration:
 
 # 2. Testing
 
+Automated unit tests cover the OpenAI client integration helpers.
+After installing dependencies in a virtual environment, add `pytest` and run:
 
+```
+.venv/bin/pip install pytest
+.venv/bin/python -m pytest
+```
 
 ## 3. Python Script Workflow
 
