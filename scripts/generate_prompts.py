@@ -13,6 +13,7 @@ from typing import Iterable, List, Sequence
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from prompt_generator import generate_prompt_template, pretty_print
+from prompt_generator.overrides import apply_overrides
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_TASKS_FILE = PROJECT_ROOT / "data" / "quickstart_tasks.json"
@@ -81,6 +82,8 @@ def main(argv: Sequence[str] | None = None) -> None:
         result = generate_prompt_template(task.name, task.variables)
 
         slug = slugify(task.name)
+        result = apply_overrides(slug, result)
+
         payload = {
             "task": task.name,
             "slug": slug,

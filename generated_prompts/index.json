@@ -50,6 +50,7 @@
     "slug": "an-agent-who-named-x-can-plan-and-execute-tasks-with-system-tools-for-planning-and-user-communication-with-the-distinction-that-the-tools-for-execution-are-to-be-provided-by-the-user",
     "requested_variables": [],
     "identified_variables": [
+      "$HISTORY",
       "$TASK",
       "$TOOLS"
     ]

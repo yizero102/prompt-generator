@@ -536,6 +536,7 @@ Runs a lightweight health check against the Anthropic Messages API.
 - Loads test data from `data/test_cases.json`
 - Executes each prompt template with concrete variable values
 - Stores model outputs under `generated_prompts/tests/`
+- For the Agent X coordination task, drives a simulated multi-turn dialogue that enforces one tool call per reply, maintains XML history, and requires a terminating `finish` system tool call with a comprehensive summary.
 
 ### Demonstrate the prompt generator on a complex coordination scenario
 ```bash
