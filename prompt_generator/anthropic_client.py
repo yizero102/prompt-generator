@@ -22,19 +22,19 @@ class AnthropicConfig:
         """Build a configuration instance using environment variables.
 
         Expected variables:
-        - ANTHROPIC_API_KEY: required API key
-        - MODEL_NAME: required Anthropic model identifier
-        - ANTHROPIC_BASE_URL: optional custom base URL (defaults to Anthropic API)
+        - _ANTHROPIC_API_KEY: required API key
+        - _MODEL_NAME: required Anthropic model identifier
+        - _ANTHROPIC_BASE_URL: optional custom base URL (defaults to Anthropic API)
         """
 
-        api_key = os.getenv("ANTHROPIC_API_KEY")
-        model_name = os.getenv("MODEL_NAME")
-        base_url = os.getenv("ANTHROPIC_BASE_URL")
+        api_key = os.getenv("_ANTHROPIC_API_KEY")
+        model_name = os.getenv("_MODEL_NAME")
+        base_url = os.getenv("_ANTHROPIC_BASE_URL")
 
         if not api_key:
-            raise RuntimeError("ANTHROPIC_API_KEY environment variable is not set.")
+            raise RuntimeError("_ANTHROPIC_API_KEY environment variable is not set.")
         if not model_name:
-            raise RuntimeError("MODEL_NAME environment variable is not set.")
+            raise RuntimeError("_MODEL_NAME environment variable is not set.")
 
         return cls(api_key=api_key, model_name=model_name, base_url=base_url or None)
 
