@@ -51,6 +51,110 @@
       "variables": {
         "$TASK": "Create an escalation playbook for handling Sev1 incidents that affect the payments API, ensuring stakeholders are updated every 30 minutes and mitigation steps are tracked.",
         "$TOOLS": "<function name=\"list_open_incidents\" args=\"service\" returns=\"incident_list\" />\n<function name=\"get_incident_timeline\" args=\"incident_id\" returns=\"timeline_entries\" />\n<function name=\"post_update\" args=\"channel, message\" returns=\"confirmation\" />\n<function name=\"assign_owner\" args=\"incident_id, team\" returns=\"assignment_receipt\" />"
+      },
+      "multi_turn": {
+        "history_variable": "$HISTORY",
+        "max_turns": 6,
+        "finish_tool": "finish",
+        "per_turn_max_tokens": 800,
+        "initial_turns": [
+          "<turn role=\"user\">\n  <request>Create an escalation playbook for Sev1 incidents impacting the payments API.</request>\n  <success_criteria>\n    <item>Stakeholders receive updates every 30 minutes</item>\n    <item>Mitigation steps are captured with owners</item>\n  </success_criteria>\n</turn>"
+        ],
+        "simulated_observations": {
+          "plan": {
+            "text": "<observation role=\"system\">Planning checkpoint acknowledged. State the next concrete step.</observation>"
+          },
+          "message_user": {
+            "text": "<observation role=\"system\">Stakeholder update queued for delivery.</observation>"
+          },
+          "call_user_tool": {
+            "list_open_incidents": {
+              "text": "<observation tool=\"list_open_incidents\">\n  <incidents>\n    <incident id=\"INC-2041\" severity=\"Sev1\" status=\"ongoing\">Payments API errors started at 05:10 UTC. Mitigation owner pending.</incident>\n    <incident id=\"INC-2033\" severity=\"Sev2\" status=\"monitoring\">Checkout latency spike resolved.</incident>\n  </incidents>\n  <next_action_hint>Retrieve the incident timeline for Sev1 IDs to inform mitigation tracking.</next_action_hint>\n</observation>"
+            },
+            "get_incident_timeline": {
+              "template": "<observation tool=\"get_incident_timeline\">\n  <timeline incident=\"{incident_id}\">\n    <entry at=\"05:10\">Alert triggered for spike in payment failures.</entry>\n    <entry at=\"05:15\">Auto-remediation run failed.</entry>\n    <entry at=\"05:22\">On-call acknowledged incident.</entry>\n  </timeline>\n  <next_action_hint>Assign an owner to unresolved Sev1 incidents and capture mitigation steps.</next_action_hint>\n</observation>"
+            },
+            "post_update": {
+              "template": "<observation tool=\"post_update\">Update pushed to {channel}: {message}</observation>"
+            },
+            "assign_owner": {
+              "template": "<observation tool=\"assign_owner\">Owner {team} assigned to incident {incident_id}.</observation>"
+            },
+            "default": {
+              "template": "<observation tool=\"{tool_name}\">Invocation accepted.</observation>"
+            }
+          },
+          "default": {
+            "text": "<observation role=\"system\">Tool invocation recorded.</observation>"
+          }
+        },
+        "requirements": {
+          "plan_first": true,
+          "must_call_user_tools": [
+            "list_open_incidents",
+            "get_incident_timeline"
+          ],
+          "finish_summary_keywords": [
+            "stakeholder",
+            "timeline",
+            "mitigation"
+          ]
+        }
+      }
+    },
+    {
+      "name": "major-outage-handoff",
+      "variables": {
+        "$TASK": "Orchestrate the first-hour response for a global payments outage impacting multiple regions. Package a briefing template and capture key decisions for the next shift.",
+        "$TOOLS": "<function name=\"list_open_incidents\" args=\"service\" returns=\"incident_list\" />\n<function name=\"get_incident_timeline\" args=\"incident_id\" returns=\"timeline_entries\" />\n<function name=\"post_update\" args=\"channel, message\" returns=\"confirmation\" />\n<function name=\"assign_owner\" args=\"incident_id, team\" returns=\"assignment_receipt\" />"
+      },
+      "multi_turn": {
+        "history_variable": "$HISTORY",
+        "max_turns": 7,
+        "finish_tool": "finish",
+        "per_turn_max_tokens": 800,
+        "initial_turns": [
+          "<turn role=\"user\">\n  <request>Coordinate the first-hour response for a global payments outage impacting multiple regions.</request>\n  <success_criteria>\n    <item>Provide a reusable briefing template</item>\n    <item>Record key decisions, owners, and timing commitments for the next shift</item>\n  </success_criteria>\n</turn>"
+        ],
+        "simulated_observations": {
+          "plan": {
+            "text": "<observation role=\"system\">Planning checkpoint logged. Confirm the next specific move.</observation>"
+          },
+          "message_user": {
+            "template": "<observation role=\"system\">Stakeholder broadcast drafted: {message}</observation>"
+          },
+          "call_user_tool": {
+            "list_open_incidents": {
+              "text": "<observation tool=\"list_open_incidents\">\n  <incidents>\n    <incident id=\"INC-3100\" severity=\"Sev1\" status=\"ongoing\">Global payments outage with 65% failure rate across regions.</incident>\n    <incident id=\"INC-3097\" severity=\"Sev1\" status=\"monitoring\">Europe failover test in progress.</incident>\n  </incidents>\n  <next_action_hint>Use get_incident_timeline for active Sev1 incidents to capture chronology before finishing.</next_action_hint>\n</observation>"
+            },
+            "get_incident_timeline": {
+              "template": "<observation tool=\"get_incident_timeline\">\n  <timeline incident=\"{incident_id}\">\n    <entry at=\"04:42\">Global monitors detected spike in checkout failures.</entry>\n    <entry at=\"04:48\">Traffic routed to backup provider; errors persisted in APAC.</entry>\n    <entry at=\"04:55\">Executive bridge opened; engineering assembling mitigations.</entry>\n  </timeline>\n  <next_action_hint>Assign ownership for active incidents and capture commitments for the next shift.</next_action_hint>\n</observation>"
+            },
+            "post_update": {
+              "template": "<observation tool=\"post_update\">Broadcast sent on {channel}: {message}</observation>"
+            },
+            "assign_owner": {
+              "template": "<observation tool=\"assign_owner\">{team} accepted ownership for incident {incident_id}.</observation>"
+            },
+            "default": {
+              "template": "<observation tool=\"{tool_name}\">Invocation accepted.</observation>"
+            }
+          },
+          "default": {
+            "text": "<observation role=\"system\">Tool invocation recorded.</observation>"
+          }
+        },
+        "requirements": {
+          "plan_first": true,
+          "must_call_user_tools": [
+            "list_open_incidents",
+            "assign_owner"
+          ],
+          "finish_summary_keywords": [
+            "briefing",
+            "owners"
+          ]
+        }
       }
     }
   ]
