@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Quick health check to confirm the Anthropic client is working."""
+"""Quick health check to confirm the configured LLM client is working."""
 
 from __future__ import annotations
 
@@ -8,29 +8,26 @@ import sys
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from prompt_generator import get_client
-from prompt_generator.generation import pretty_print
+from prompt_generator import get_client  # noqa: E402
+from prompt_generator.generation import pretty_print, _collect_content_blocks  # noqa: E402
 
 
 def main() -> None:
-    client, model_name = get_client()
-    message = client.messages.create(
-        model=model_name,
+    llm_client = get_client()
+    message = llm_client.create_message(
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": "Hi"},
+        ],
         max_tokens=256,
-        system="You are a helpful assistant.",
-        messages=[{"role": "user", "content": "Hi"}],
+        temperature=0,
     )
 
-    thinking = "\n\n".join(
-        block.thinking
-        for block in message.content
-        if getattr(block, "type", None) == "thinking" and getattr(block, "thinking", None)
-    )
-    output = "\n\n".join(
-        block.text
-        for block in message.content
-        if getattr(block, "type", None) == "text" and getattr(block, "text", None)
-    )
+    thinking_blocks = _collect_content_blocks(message, "thinking", llm_client.provider)
+    output_blocks = _collect_content_blocks(message, "text", llm_client.provider)
+
+    thinking = "\n\n".join(thinking_blocks)
+    output = "\n\n".join(output_blocks)
 
     if thinking:
         print("Thinking:\n")

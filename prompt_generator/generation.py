@@ -4,11 +4,9 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import Iterable, List, Optional, Sequence, Tuple
+from typing import Any, List, Optional, Sequence, Tuple
 
-from anthropic import Anthropic
-
-from .anthropic_client import get_client
+from .anthropic_client import LLMClient, ensure_llm_client
 from .metaprompt_text import METAPROMPT, REMOVE_FLOATING_VARIABLES_PROMPT
 
 
@@ -44,18 +42,76 @@ class GeneratedPrompt:
         return self.final_prompt_template
 
 
-def _collect_content_blocks(message, block_type: str) -> List[str]:
+def _collect_openai_blocks(message: Any, block_type: str) -> List[str]:
     blocks: List[str] = []
-    for block in getattr(message, "content", []) or []:
-        if getattr(block, "type", None) != block_type:
+    choices = getattr(message, "choices", None) or []
+    for choice in choices:
+        chat_message = getattr(choice, "message", None)
+        if chat_message is None:
             continue
+
         if block_type == "thinking":
-            value = getattr(block, "thinking", None)
+            reasoning_details = getattr(chat_message, "reasoning_details", None)
+            if reasoning_details:
+                for detail in reasoning_details:
+                    if isinstance(detail, dict):
+                        text = detail.get("text")
+                    else:
+                        text = getattr(detail, "text", None)
+                    if text:
+                        blocks.append(text)
+            else:
+                reasoning = getattr(chat_message, "reasoning", None)
+                if isinstance(reasoning, str) and reasoning:
+                    blocks.append(reasoning)
+                elif isinstance(reasoning, list):
+                    for segment in reasoning:
+                        if isinstance(segment, dict):
+                            text = segment.get("text")
+                        else:
+                            text = getattr(segment, "text", None)
+                        if text:
+                            blocks.append(text)
+            continue
+
+        content = getattr(chat_message, "content", None)
+        if not content:
+            continue
+        if isinstance(content, str):
+            blocks.append(content)
+        elif isinstance(content, list):
+            for part in content:
+                if isinstance(part, dict):
+                    text = part.get("text")
+                else:
+                    text = getattr(part, "text", None)
+                if text:
+                    blocks.append(text)
         else:
-            value = getattr(block, "text", None)
-        if value:
-            blocks.append(value)
+            text = getattr(content, "text", None)
+            if text:
+                blocks.append(text)
     return blocks
+
+
+def _collect_content_blocks(message: Any, block_type: str, provider: str) -> List[str]:
+    if provider == "anthropic":
+        blocks: List[str] = []
+        for block in getattr(message, "content", []) or []:
+            if getattr(block, "type", None) != block_type:
+                continue
+            if block_type == "thinking":
+                value = getattr(block, "thinking", None)
+            else:
+                value = getattr(block, "text", None)
+            if value:
+                blocks.append(value)
+        return blocks
+
+    if provider == "openai":
+        return _collect_openai_blocks(message, block_type)
+
+    raise ValueError(f"Unsupported provider for content extraction: {provider!r}")
 
 
 def _extract_between_tags(tag: str, string: str, strip: bool = False) -> List[str]:
@@ -119,11 +175,8 @@ def _find_free_floating_variables(prompt: str) -> List[str]:
     return free_floating_variables
 
 
-def _remove_inapt_floating_variables(
-    prompt: str, client: Anthropic, model_name: str
-) -> Tuple[Optional[str], str]:
-    message = client.messages.create(
-        model=model_name,
+def _remove_inapt_floating_variables(prompt: str, llm_client: LLMClient) -> Tuple[Optional[str], str]:
+    message = llm_client.create_message(
         messages=[
             {
                 "role": "user",
@@ -133,7 +186,8 @@ def _remove_inapt_floating_variables(
         max_tokens=4096,
         temperature=0,
     )
-    text_blocks = _collect_content_blocks(message, "text")
+
+    text_blocks = _collect_content_blocks(message, "text", llm_client.provider)
     response_text = "\n\n".join(text_blocks)
     rewritten = _extract_between_tags("rewritten_prompt", response_text)[0]
     normalized = rewritten.strip().lower()
@@ -148,18 +202,12 @@ def generate_prompt_template(
     task: str,
     requested_variables: Optional[Sequence[str]] = None,
     *,
-    client: Optional[Anthropic] = None,
+    client: Optional[Any] = None,
     model_name: Optional[str] = None,
 ) -> GeneratedPrompt:
     """Generate a prompt template for the provided task."""
 
-    anthropic_client, resolved_model_name = (
-        (client, model_name)
-        if client and model_name
-        else get_client()
-    )
-    assert anthropic_client is not None
-    assert resolved_model_name is not None
+    llm_client = ensure_llm_client(client, model_name)
 
     normalized_variables = [var.upper() for var in (requested_variables or [])]
     variable_string = ""
@@ -172,18 +220,17 @@ def generate_prompt_template(
         assistant_partial += variable_string
     assistant_partial += "\n</Inputs>\n<Instructions Structure>"
 
-    message = anthropic_client.messages.create(
-        model=resolved_model_name,
-        max_tokens=4096,
-        temperature=0,
+    message = llm_client.create_message(
         messages=[
             {"role": "user", "content": prompt},
             {"role": "assistant", "content": assistant_partial},
         ],
+        max_tokens=4096,
+        temperature=0,
     )
 
-    thinking_blocks = _collect_content_blocks(message, "thinking")
-    text_blocks = _collect_content_blocks(message, "text")
+    thinking_blocks = _collect_content_blocks(message, "thinking", llm_client.provider)
+    text_blocks = _collect_content_blocks(message, "text", llm_client.provider)
     metaprompt_thinking = "\n\n".join(thinking_blocks)
     metaprompt_response = "\n\n".join(text_blocks)
 
@@ -195,7 +242,7 @@ def generate_prompt_template(
     floating_analysis = None
     if floating_variables:
         rewritten_prompt, floating_analysis = _remove_inapt_floating_variables(
-            final_prompt_template, anthropic_client, resolved_model_name
+            final_prompt_template, llm_client
         )
         if rewritten_prompt:
             final_prompt_template = rewritten_prompt

@@ -503,23 +503,35 @@ Here are some examples for inspiration:
 The original notebook has been converted into a set of reusable Python modules and scripts.
 To run them locally:
 
-1. Create a virtual environment and install the dependencies (Anthropic SDK):
+1. Create a virtual environment and install the dependencies (Anthropic + OpenAI SDKs):
    ```bash
    python3 -m venv .venv
-   .venv/bin/pip install anthropic
+   .venv/bin/pip install anthropic openai
    ```
-2. Export the required Anthropic environment variables if they are not already set:
+2. Export the environment variables for your chosen provider. The helper defaults to
+   whichever API key is present, or you can set `_LLM_PROVIDER` explicitly.
+
+   **Anthropic (Claude)**
    ```bash
-   export ANTHROPIC_API_KEY="..."
-   export ANTHROPIC_BASE_URL="https://api.anthropic.com"  # optional if using the default
-   export MODEL_NAME="claude-3-5-sonnet-latest"
+   export _LLM_PROVIDER=anthropic      # optional when only the Anthropic key is present
+   export _ANTHROPIC_API_KEY="..."
+   export _MODEL_NAME="claude-3-5-sonnet-latest"
+   export _ANTHROPIC_BASE_URL="https://api.anthropic.com"  # optional
+   ```
+
+   **OpenAI**
+   ```bash
+   export _LLM_PROVIDER=openai         # optional when only the OpenAI key is present
+   export _OPENAI_API_KEY="..."
+   export _MODEL_NAME="gpt-4.1-mini"
+   export _OPENAI_BASE_URL="https://api.openai.com/v1"  # optional
    ```
 
 ### Verify API connectivity
 ```bash
 .venv/bin/python scripts/verify_llm.py
 ```
-Runs a lightweight health check against the Anthropic Messages API.
+Runs a lightweight health check against the configured provider's chat API.
 
 ### Generate prompt templates for the Quickstart tasks
 ```bash
