@@ -1,0 +1,57 @@
+[
+  {
+    "task": "Choose an item from a menu for me given user preferences",
+    "slug": "choose-an-item-from-a-menu-for-me-given-user-preferences",
+    "requested_variables": [],
+    "identified_variables": [
+      "$MENU",
+      "$USER_PREFERENCES"
+    ]
+  },
+  {
+    "task": "Rate a resume according to a rubric",
+    "slug": "rate-a-resume-according-to-a-rubric",
+    "requested_variables": [],
+    "identified_variables": [
+      "RESUME",
+      "RUBRIC"
+    ]
+  },
+  {
+    "task": "Explain a complex scientific concept in simple terms",
+    "slug": "explain-a-complex-scientific-concept-in-simple-terms",
+    "requested_variables": [],
+    "identified_variables": [
+      "$AUDIENCE_LEVEL",
+      "$CONCEPT"
+    ]
+  },
+  {
+    "task": "Draft an email responding to a customer complaint",
+    "slug": "draft-an-email-responding-to-a-customer-complaint",
+    "requested_variables": [],
+    "identified_variables": [
+      "COMPANY_INFO",
+      "CUSTOMER_COMPLAINT",
+      "RESPONSE_GUIDELINES"
+    ]
+  },
+  {
+    "task": "Design a marketing strategy for launching a new product",
+    "slug": "design-a-marketing-strategy-for-launching-a-new-product",
+    "requested_variables": [],
+    "identified_variables": [
+      "MARKET_CONTEXT",
+      "PRODUCT_DETAILS"
+    ]
+  },
+  {
+    "task": "An agent who named 'X' can plan and execute tasks with system tools for planning and user communication, with the distinction that the tools for execution are to be provided by the user",
+    "slug": "an-agent-who-named-x-can-plan-and-execute-tasks-with-system-tools-for-planning-and-user-communication-with-the-distinction-that-the-tools-for-execution-are-to-be-provided-by-the-user",
+    "requested_variables": [],
+    "identified_variables": [
+      "$TASK",
+      "$TOOLS"
+    ]
+  }
+]
