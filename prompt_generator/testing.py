@@ -1,13 +1,11 @@
-"""Helpers for executing generated prompt templates against Anthropic models."""
+"""Helpers for executing generated prompt templates against supported LLMs."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, Mapping, Optional
+from typing import Any, Dict, Mapping, Optional
 
-from anthropic import Anthropic
-
-from .anthropic_client import get_client
+from .anthropic_client import ensure_llm_client
 from .generation import _collect_content_blocks, _extract_variables
 
 
@@ -25,7 +23,13 @@ class PromptTestResult:
 def _fill_template(template: str, variables: Mapping[str, str]) -> str:
     prompt = template
     for name, value in variables.items():
-        prompt = prompt.replace("{" + name + "}", value)
+        variants = {name}
+        if name.startswith("$"):
+            variants.add(name[1:])
+        else:
+            variants.add("$" + name)
+        for variant in variants:
+            prompt = prompt.replace("{" + variant + "}", value)
     return prompt
 
 
@@ -41,29 +45,24 @@ def run_prompt_test(
     template: str,
     variables: Mapping[str, str],
     *,
-    client: Optional[Anthropic] = None,
+    client: Optional[Any] = None,
     model_name: Optional[str] = None,
     max_tokens: int = 1024,
 ) -> PromptTestResult:
-    """Execute a prompt template against the Anthropic Messages API."""
+    """Execute a prompt template against the configured LLM provider."""
 
-    anthropic_client, resolved_model_name = (
-        (client, model_name) if client and model_name else get_client()
-    )
-    assert anthropic_client is not None
-    assert resolved_model_name is not None
+    llm_client = ensure_llm_client(client, model_name)
 
     filled_prompt = _fill_template(template, variables)
     _assert_all_variables_filled(template, filled_prompt)
 
-    message = anthropic_client.messages.create(
-        model=resolved_model_name,
-        max_tokens=max_tokens,
+    message = llm_client.create_message(
         messages=[{"role": "user", "content": filled_prompt}],
+        max_tokens=max_tokens,
     )
 
-    thinking_blocks = _collect_content_blocks(message, "thinking")
-    text_blocks = _collect_content_blocks(message, "text")
+    thinking_blocks = _collect_content_blocks(message, "thinking", llm_client.provider)
+    text_blocks = _collect_content_blocks(message, "text", llm_client.provider)
 
     thinking = "\n\n".join(thinking_blocks)
     output_text = "\n\n".join(text_blocks)

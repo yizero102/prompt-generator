@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate prompt templates for the Quickstart examples using Anthropic."""
+"""Generate prompt templates for the Quickstart examples using the configured LLM."""
 
 from __future__ import annotations
 

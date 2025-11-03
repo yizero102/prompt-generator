@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate and exercise the prompt generator on a complex coordination task."""
+"""Generate and exercise the prompt generator on a complex coordination task using the configured LLM."""
 
 from __future__ import annotations
 
