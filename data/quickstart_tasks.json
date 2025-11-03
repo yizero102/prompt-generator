@@ -1,0 +1,26 @@
+[
+  {
+    "task": "Choose an item from a menu for me given user preferences",
+    "variables": []
+  },
+  {
+    "task": "Rate a resume according to a rubric",
+    "variables": []
+  },
+  {
+    "task": "Explain a complex scientific concept in simple terms",
+    "variables": []
+  },
+  {
+    "task": "Draft an email responding to a customer complaint",
+    "variables": []
+  },
+  {
+    "task": "Design a marketing strategy for launching a new product",
+    "variables": []
+  },
+  {
+    "task": "An agent who named 'X' can plan and execute tasks with system tools for planning and user communication, with the distinction that the tools for execution are to be provided by the user",
+    "variables": []
+  }
+]

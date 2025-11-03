@@ -1,0 +1,57 @@
+{
+  "choose-an-item-from-a-menu-for-me-given-user-preferences": [
+    {
+      "name": "vegetarian-low-spice",
+      "variables": {
+        "$MENU": "<menu>\n  <item name=\"Smoky Jackfruit Tacos\" price=\"14\">Charred jackfruit, pickled red onions, cilantro-lime crema</item>\n  <item name=\"Roasted Cauliflower Curry\" price=\"16\">Turmeric-roasted cauliflower, coconut milk, basmati rice</item>\n  <item name=\"Lemon Herb Salmon\" price=\"22\">Pan-seared salmon, farro pilaf, roasted asparagus</item>\n  <item name=\"Wild Mushroom Risotto\" price=\"18\">Arborio rice, porcini broth, parmesan crisps</item>\n  <item name=\"Chipotle Chicken Bowl\" price=\"17\">Grilled chicken, chipotle rice, charred corn salsa</item>\n</menu>",
+        "$USER_PREFERENCES": "Vegetarian, prefers mild spice, avoids dairy-heavy dishes, looking for something warm and comforting."
+      }
+    }
+  ],
+  "rate-a-resume-according-to-a-rubric": [
+    {
+      "name": "product-manager",
+      "variables": {
+        "RESUME": "Jane Doe\nProduct Manager with 6 years of experience leading SaaS platform initiatives.\n\nExperience: \n- Senior Product Manager, Nimbus SaaS (2021-Present): Led cross-functional squad shipping analytics dashboard that increased retention by 12%. Established discovery rituals and OKR cadence.\n- Product Manager, CloudBright (2018-2021): Launched onboarding funnel redesign that lifted activation by 18%. Partnered with sales to define enterprise roadmap.\n\nEducation: \n- B.S. Information Systems, Georgia Tech\n\nSkills: Journey mapping, stakeholder facilitation, SQL, Tableau, Agile coaching.\n\nAwards: 2020 Product-Led Growth Award\n",
+        "RUBRIC": "Product Manager Evaluation Rubric\n\n1. Problem Discovery (1-5): Ability to uncover user pain points and synthesize insights.\n2. Execution & Delivery (1-5): Track record of shipping impactful features, working cross-functionally.\n3. Strategic Thinking (1-5): Evidence of roadmap ownership, OKR alignment, long-term vision.\n4. Communication (1-5): Clarity in stakeholder management, storytelling, and documentation.\n5. Technical Fluency (1-5): Comfort with data, experimentation, and engineering collaboration."
+      }
+    }
+  ],
+  "explain-a-complex-scientific-concept-in-simple-terms": [
+    {
+      "name": "high-school-audience",
+      "variables": {
+        "$CONCEPT": "Quantum entanglement: a quantum phenomenon where pairs of particles remain connected so that the state of one instantly influences the state of the other, regardless of distance.",
+        "$AUDIENCE_LEVEL": "Curious high-school students who have taken basic physics but no quantum mechanics."
+      }
+    }
+  ],
+  "draft-an-email-responding-to-a-customer-complaint": [
+    {
+      "name": "delayed-shipment",
+      "variables": {
+        "CUSTOMER_COMPLAINT": "From: maria.lopez@example.com\nSubject: Order #45821 still not delivered\n\nHello,\nI placed an order for the Aurora smart lamp on September 12 and was told it would arrive within five business days. It has now been more than two weeks, and the tracking page hasn't updated since September 18. This was supposed to be a birthday gift and I'm extremely frustrated. If you can't guarantee delivery this week, I want a full refund.\n\nPlease fix this ASAP.\n— Maria Lopez",
+        "COMPANY_INFO": "Lumina Home Goods\nCustomer Care Team\nSupport hours: 8am-8pm ET, Mon-Sat\nStandard policy: expedite replacements via FedEx Overnight when delays exceed 7 days",
+        "RESPONSE_GUIDELINES": "Tone: Empathetic, accountable, solutions-oriented.\nKey steps: acknowledge delay, investigate carrier, offer expedited replacement or refund options, provide discount code for future purchase."
+      }
+    }
+  ],
+  "design-a-marketing-strategy-for-launching-a-new-product": [
+    {
+      "name": "sustainability-app",
+      "variables": {
+        "PRODUCT_DETAILS": "EcoLoop: a mobile app that helps urban professionals track and reduce their household carbon footprint. Features weekly challenges, smart-home integrations, and community rewards.",
+        "MARKET_CONTEXT": "Target cities: Seattle, Portland, Vancouver. Audience: 25-40 year-old professionals with disposable income and sustainability goals. Key competitors: JouleTrack, GreenHabit. Market trend: Employers adding sustainability perks; local governments offering tax incentives for carbon reduction tools. Launch budget: $500k for first six months."
+      }
+    }
+  ],
+  "an-agent-who-named-x-can-plan-and-execute-tasks-with-system-tools-for-planning-and-user-communication-with-the-distinction-that-the-tools-for-execution-are-to-be-provided-by-the-user": [
+    {
+      "name": "escalation-playbook",
+      "variables": {
+        "$TASK": "Create an escalation playbook for handling Sev1 incidents that affect the payments API, ensuring stakeholders are updated every 30 minutes and mitigation steps are tracked.",
+        "$TOOLS": "<function name=\"list_open_incidents\" args=\"service\" returns=\"incident_list\" />\n<function name=\"get_incident_timeline\" args=\"incident_id\" returns=\"timeline_entries\" />\n<function name=\"post_update\" args=\"channel, message\" returns=\"confirmation\" />\n<function name=\"assign_owner\" args=\"incident_id, team\" returns=\"assignment_receipt\" />"
+      }
+    }
+  ]
+}
