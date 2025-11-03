@@ -493,18 +493,6 @@ Here are some examples for inspiration:
 - Design a marketing strategy for launching a new product
 - an agent who named 'X' can plan and execute tasks with system tools for planning and user communication, with the distinction that the tools for execution are to be provided by the user
 
-There are two examples of tasks + optional variables below.
-```
-TASK = "Draft an email responding to a customer complaint" # Replace with your task!
-# Optional: specify the input variables you want Claude to use. If you want Claude to choose, you can set `variables` to an empty list!
-VARIABLES = []
-# VARIABLES = ["CUSTOMER_COMPLAINT", "COMPANY_NAME"]
-# If you want Claude to choose the variables, just leave VARIABLES as an empty list.
-
-# TASK = "Choose an item from a menu for me given my preferences"
-# VARIABLES = []
-# VARIABLES = ["MENU", "PREFERENCES"]
-```
 
 # 2. Testing
 
