@@ -1,0 +1,51 @@
+{
+  "task": "Choose an item from a menu for me given user preferences",
+  "test_cases": [
+    {
+      "test_id": "menu_001",
+      "description": "Vegetarian preference with Italian food preference",
+      "inputs": {
+        "MENU": "1. Margherita Pizza (vegetarian) - $12\n2. Pepperoni Pizza - $14\n3. Caesar Salad (contains anchovies) - $9\n4. Garden Salad (vegan) - $8\n5. Pasta Carbonara (contains eggs and bacon) - $13\n6. Marinara Pasta (vegan) - $11",
+        "PREFERENCES": "I'm vegetarian and prefer Italian food. I'm not a fan of very heavy dishes."
+      },
+      "expected_behavior": "Should recommend Margherita Pizza or Marinara Pasta, avoiding meat dishes and explaining the reasoning",
+      "validation_criteria": [
+        "Does not recommend meat-containing items (Pepperoni Pizza, Pasta Carbonara)",
+        "Recommends vegetarian or vegan option",
+        "Provides clear reasoning for recommendation",
+        "Uses <recommendation> XML tags",
+        "Considers the preference for lighter dishes"
+      ]
+    },
+    {
+      "test_id": "menu_002",
+      "description": "Multiple dietary restrictions",
+      "inputs": {
+        "MENU": "1. Grilled Chicken Sandwich - $10\n2. Veggie Burger (contains gluten) - $9\n3. Quinoa Bowl (gluten-free, vegan) - $12\n4. Fish Tacos (contains gluten) - $11\n5. Greek Salad (contains dairy) - $9",
+        "PREFERENCES": "I'm vegan and gluten-free. I love Mediterranean flavors and high-protein meals."
+      },
+      "expected_behavior": "Should only recommend Quinoa Bowl as it's the only option meeting both restrictions",
+      "validation_criteria": [
+        "Only recommends gluten-free AND vegan options",
+        "Explicitly addresses both dietary restrictions",
+        "Explains why other options were eliminated",
+        "Mentions Mediterranean flavors or protein content if relevant"
+      ]
+    },
+    {
+      "test_id": "menu_003",
+      "description": "Budget constraint preference",
+      "inputs": {
+        "MENU": "1. Budget Burger - $5\n2. Deluxe Steak - $35\n3. Pasta Special - $8\n4. Gourmet Sandwich - $12\n5. House Salad - $6",
+        "PREFERENCES": "I'm on a tight budget, looking to spend no more than $8. I prefer something filling."
+      },
+      "expected_behavior": "Should recommend Budget Burger or Pasta Special, considering both price and filling nature",
+      "validation_criteria": [
+        "Only recommends items $8 or less",
+        "Considers filling/satisfying nature of food",
+        "Addresses budget constraint explicitly",
+        "Provides reasoning for recommendation"
+      ]
+    }
+  ]
+}
