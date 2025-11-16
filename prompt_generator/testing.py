@@ -1,0 +1,78 @@
+"""Helpers for executing generated prompt templates against Anthropic models."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Dict, Mapping, Optional
+
+from anthropic import Anthropic
+
+from .anthropic_client import get_client
+from .generation import _collect_content_blocks, _extract_variables
+
+
+@dataclass
+class PromptTestResult:
+    """Outcome of executing a prompt template with concrete variables."""
+
+    prompt_with_variables: str
+    variables: Dict[str, str]
+    thinking: str
+    output: str
+    raw_response: str
+
+
+def _fill_template(template: str, variables: Mapping[str, str]) -> str:
+    prompt = template
+    for name, value in variables.items():
+        prompt = prompt.replace("{" + name + "}", value)
+    return prompt
+
+
+def _assert_all_variables_filled(template: str, filled_prompt: str) -> None:
+    missing = _extract_variables(filled_prompt)
+    if missing:
+        raise ValueError(
+            "Some variables were not replaced in the prompt: " + ", ".join(sorted(missing))
+        )
+
+
+def run_prompt_test(
+    template: str,
+    variables: Mapping[str, str],
+    *,
+    client: Optional[Anthropic] = None,
+    model_name: Optional[str] = None,
+    max_tokens: int = 1024,
+) -> PromptTestResult:
+    """Execute a prompt template against the Anthropic Messages API."""
+
+    anthropic_client, resolved_model_name = (
+        (client, model_name) if client and model_name else get_client()
+    )
+    assert anthropic_client is not None
+    assert resolved_model_name is not None
+
+    filled_prompt = _fill_template(template, variables)
+    _assert_all_variables_filled(template, filled_prompt)
+
+    message = anthropic_client.messages.create(
+        model=resolved_model_name,
+        max_tokens=max_tokens,
+        messages=[{"role": "user", "content": filled_prompt}],
+    )
+
+    thinking_blocks = _collect_content_blocks(message, "thinking")
+    text_blocks = _collect_content_blocks(message, "text")
+
+    thinking = "\n\n".join(thinking_blocks)
+    output_text = "\n\n".join(text_blocks)
+    raw_response = thinking + ("\n\n" if thinking and output_text else "") + output_text
+
+    return PromptTestResult(
+        prompt_with_variables=filled_prompt,
+        variables=dict(variables),
+        thinking=thinking,
+        output=output_text,
+        raw_response=raw_response,
+    )

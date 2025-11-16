@@ -1,18 +1,6 @@
-# prompt-generator
+"""Static prompt resources used by the generator."""
 
-# Table of Contents
-
-0. The Metaprompt
-1. Quickstart - Enter a task, get a prompt template
-2. Testing your prompt template
-
-## 0. The Metaprompt
-
-The Metaprompt is a long multi-shot prompt filled with half a dozen examples of good prompts for solving various tasks. These examples help Claude to write a good prompt for your task. The full text is below (warning: it's long!)
-
-**Metaprompt Text**
-```
-Today you will be writing instructions to an eager, helpful, but inexperienced and unworldly AI assistant who needs careful instruction and examples to understand how best to behave. I will explain a task to you. You will write instructions that will direct the assistant on how best to accomplish the task consistently, accurately, and correctly. Here are some examples of tasks and instructions.
+METAPROMPT = """Today you will be writing instructions to an eager, helpful, but inexperienced and unworldly AI assistant who needs careful instruction and examples to understand how best to behave. I will explain a task to you. You will write instructions that will direct the assistant on how best to accomplish the task consistently, accurately, and correctly. Here are some examples of tasks and instructions.
 
 <Task Instruction Example>
 <Task>
@@ -460,16 +448,7 @@ Do not modify or extend the provided functions under any circumstances. For exam
 The result of a function call will be added to the conversation history as an observation. If necessary, you can make multiple function calls and use all the functions I have equipped you with. Always return your final answer within <answer> tags.
 
 The question to answer is:
-<question>{$QUESTION}</question>
-
-</Instructions>
-</Task Instruction Example>
-
-That concludes the examples. Now, here is the task for which I would like you to write instructions:
-
-<Task>
-{{TASK}}
-</Task>
+<question>{{TASK}}</question>
 
 To write your instructions, follow THESE instructions:
 1. In <Inputs> tags, write down the barebones, minimal, nonoverlapping set of text input variable(s) the instructions will make reference to. (These are variable names, not specific instructions.) Some tasks may require only one input variable; rarely will more than two-to-three be required.
@@ -480,67 +459,168 @@ Note: This is probably obvious to you already, but you are not *completing* the 
 Note: Another name for what you are writing is a "prompt template". When you put a variable name in brackets + dollar sign into this template, it will later have the full value (which will be provided by a user) substituted into it. This only needs to happen once for each variable. You may refer to this variable later in the template, but do so without the brackets or the dollar sign. Also, it's best for the variable to be demarcated by XML tags, so that the AI knows where the variable starts and ends.
 Note: When instructing the AI to provide an output (e.g. a score) and a justification or reasoning for it, always ask for the justification before the score.
 Note: If the task is particularly complicated, you may wish to instruct the AI to think things out beforehand in scratchpad or inner monologue XML tags before it gives its final answer. For simple tasks, omit this.
-Note: If you want the AI to output its entire response or parts of its response inside certain tags, specify the name of these tags (e.g. "write your answer inside <answer> tags") but do not include closing tags or unnecessary open-and-close tag sections.
-```
+Note: If you want the AI to output its entire response or parts of its response inside certain tags, specify the name of these tags (e.g. "write your answer inside <answer> tags") but do not include closing tags or unnecessary open-and-close tag sections."""
 
 
-# 1. Quickstart
-Here are some examples for inspiration:
-- Choose an item from a menu for me given user preferences
-- Rate a resume according to a rubric
-- Explain a complex scientific concept in simple terms
-- Draft an email responding to a customer complaint
-- Design a marketing strategy for launching a new product
-- an agent who named 'X' can plan and execute tasks with system tools for planning and user communication, with the distinction that the tools for execution are to be provided by the user
+REMOVE_FLOATING_VARIABLES_PROMPT = """I will give you a prompt template with one or more usages of variables (capitalized words between curly braces with a dollar sign). Some of these usages are erroneous and should be replaced with the unadorned variable name (possibly with minor cosmetic changes to the sentence). What does it mean for a usage to be "erroneous"? It means that when the variable is replaced by its actual value, the sentence would be ungrammatical, nonsensical, or otherwise inappropriate.
 
+For example, take this prompt:
 
-# 2. Testing
+<example_prompt>
+You are an AI assistant that specializes in helping users grade a resume according to a rubric that I will provide. Your task is to read the {$RESUME} closely and evaluate it according to each of the criteria listed in the {$RUBRIC}.
 
+Here is the resume you will be assessing:
+<resume>
+{$RESUME}
+</resume>
 
+And here is the rubric you will be using:
+<rubric>
+{$RUBRIC}
+</rubric>
 
-## 3. Python Script Workflow
+First, in a <scratchpad>, go through each of the criteria in the rubric and consider how well the resume meets each one. Then, provide a <score> for that individual criteria. Consider individual elements of the resume and whether or not they meet the criteria.
 
-The original notebook has been converted into a set of reusable Python modules and scripts.
-To run them locally:
+Once you have scored each criteria, provide an overall <score> for the resume and justify your assessment in <justification> tags.
+</example_prompt>
 
-1. Create a virtual environment and install the dependencies (Anthropic SDK):
-   ```bash
-   python3 -m venv .venv
-   .venv/bin/pip install anthropic
-   ```
-2. Export the required Anthropic environment variables if they are not already set:
-   ```bash
-   export ANTHROPIC_API_KEY="..."
-   export ANTHROPIC_BASE_URL="https://api.anthropic.com"  # optional if using the default
-   export MODEL_NAME="claude-3-5-sonnet-latest"
-   ```
+Here are the variables, their texts and usages, and whether or not the usages are erroneous. A *variable* is a word or phrase that is used as a placeholder for various inputs that will be provided by the user. In the prompt, variables are denoted by surrounding brackets and a dollar sign, like this:
 
-### Verify API connectivity
-```bash
-.venv/bin/python scripts/verify_llm.py
-```
-Runs a lightweight health check against the Anthropic Messages API.
+{$VARIABLE}
 
-### Generate prompt templates for the Quickstart tasks
-```bash
-.venv/bin/python scripts/generate_prompts.py
-```
-- Reads task definitions from `data/quickstart_tasks.json`
-- Writes prompt artifacts to `generated_prompts/`
-- Updates `generated_prompts/index.json` with a summary of generated templates
+The *text* of a usage is the sentence or phrase in which the variable appears. The *apt* tag indicates whether the variable has been aptly and appropriately used. If the usage is actually intended to just be the plain text of the variable name, it's inapt.
 
-### Execute test cases for each generated prompt
-```bash
-.venv/bin/python scripts/run_prompt_tests.py
-```
-- Loads test data from `data/test_cases.json`
-- Executes each prompt template with concrete variable values
-- Stores model outputs under `generated_prompts/tests/`
+<variables>
+<variable>
+<name>
+{$RESUME}
+</name>
+<usages>
+<usage>
+<text>
+Your task is to read the {$RESUME} closely and evaluate it according to each of the criteria listed in the {$RUBRIC}.
+<text>
+<thinking>
+Replacing "{$RESUME}" with an actual resume would not make sense in the context of this sentence.
+Replacing "{$MENU}" with the word "resume" would make more sense.
+</thinking>
+<apt>
+No
+</apt>
+<usage>
+<usage>
+<text>
+Here is the resume you will be assessing:
+<resume>
+{$RESUME}
+</resume>
+<text>
+<thinking>
+Here, the "{$RESUME}" variable is introduced by the phrase "Here is the resume you will be assessing:" and wrapped in XML tags. Substituting the full resume would make total sense. In contrast, replacing it with the mere *word* "resume" would not be correct because there's an expectation that the actual resume should go here.
+</thinking>
+<apt>
+Yes
+</apt>
+<usage>
+</usages>
+</variable>
+<variable>
+<name>
+{$RUBRIC}
+</name>
+<usages>
+<usage>
+<text>
+Your task is to read the {$RESUME} closely and evaluate it according to each of the criteria listed in the {$RUBRIC}.
+</text>
+<apt>
+No
+</apt>
+</usage>
+<usage>
+<text>
+And here is the rubric you will be using:
+<rubric>
+{$RUBRIC}
+</rubric>
+</text>
+<apt>
+Yes
+</apt>
+</usage>
+</usages>
+</variable>
+</variables>
 
-### Demonstrate the prompt generator on a complex coordination scenario
-```bash
-.venv/bin/python scripts/complex_task_demo.py
-```
-This script generates an additional crisis-response prompt template and executes
-a representative test case. Artifacts are saved alongside the Quickstart
-outputs in `generated_prompts/`.
+In general, inline variable usages (not surrounded by XML tags) are only apt when they BOTH 1. refer to a variable that would be expected to be quite short, and also 2. exist within grammatical structures that would make sense after a subsitution.
+
+Here are some more example usages along with whether or not they are apt.
+
+<example>
+<text>
+Always keep in mind your ultimate {$GOAL} when completing this task.
+</text>
+<thinking>
+Replacing "{$GOAL}" with an actual goal, a la "Always keep in mind your ultimate Becoming the best basketball player in the world when completing this task" would not make logical/grammaticall sense.
+Replacing "{$GOAL}" with "goal", on the other hand, makes total sense.
+</thinking>
+<apt>
+No
+</apt>
+</example>
+<example>
+<text>
+The email should be addressed to the {$RECIPIENT}.
+</text>
+<thinking>
+Substituting a recipient like bobjones23@gmail.com would lead to "The email should be addressed to the bobjones23@gmail.com." which is almost grammatical but not quite because of the "the".
+"The email should be addressed to the recipient" is perfectly coherent English.
+</thinking>
+<apt>
+No
+</apt>
+</example>
+<example>
+<text>
+Each usage of the word 'apple' should be replaced with one of the {$SUBSTITUTE_FRUITS} options.
+</text>
+<thinking>
+{$SUBSTITUTE_FRUITS} is a list of fruits. Replacing {$SUBSTITUTE_FRUITS} with "apple, banana, cherry" would not quite make sense in this context, but it would be fine to replace it with "substitute fruit", or to write "with one of these options: {$SUBSTITUTE_FRUITS}.".
+</thinking>
+<apt>
+No
+</apt>
+</example>
+<example>
+<text>
+Each usage of the word 'apple' should be replaced with one of the following options:
+<substitute_fruits>
+{$SUBSTITUTE_FRUITS}
+</substitute_fruits>
+</text>
+<apt>
+Yes
+</apt>
+</example>
+<example>
+<text>
+Each instance of "{$FRUIT}" must be replaced with a vegetable.
+</text>
+<thinking>
+Because of the quotation marks, substituting the actual name of the fruit, a la 'Each instance of "apple" must be replaced with a vegetable', would make sense.
+</thinking>
+<apt>
+Yes
+</apt>
+</example>
+
+Now that you've read and internalized the examples, please consider the following prompt:
+<prompt>
+{$PROMPT}
+</prompt>
+
+Create an output like the <variables> block above, in which you list all the variables used in the prompt, their usages, your thinking (in <thinking> tags) about their aptness, and finally whether they are apt or inapt. While thinking, first consider each replacement before reaching a conclusion about aptness. If the usage seems grievously inapt (err on the side of presuming correctness), propose a rewrite.
+
+Then, rewrite the prompt. Adapt each inapt variable use according to the remedy you proposed in the corresponding <thinking> tags. Put this rewrite in a <rewritten_prompt> tag. For apt variable usages, don't make any changes to that area of the prompt. If all usages are deemed apt, you may indicate this by simply writing "No changes." within the <rewritten_prompt> tags.
+
+Important rule: Your rewritten prompt must always include each variable at least once. If there is a variable for which all usages are inapt, introduce the variable at the beginning in an XML-tagged block, analogous to some of the usages in the examples above."""
